@@ -46,6 +46,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.CalcKeyBindBox = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.button5 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
             this.BoundKeyList = new System.Windows.Forms.ListBox();
             this.SaveBtn = new System.Windows.Forms.Button();
@@ -247,6 +248,7 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.button5);
             this.groupBox2.Controls.Add(this.button4);
             this.groupBox2.Controls.Add(this.BoundKeyList);
             this.groupBox2.Location = new System.Drawing.Point(211, 102);
@@ -255,6 +257,16 @@
             this.groupBox2.TabIndex = 8;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Currently Bound Keys";
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(320, 52);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(63, 23);
+            this.button5.TabIndex = 2;
+            this.button5.Text = "Clear";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // button4
             // 
@@ -375,6 +387,7 @@
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button button5;
     }
 }
 

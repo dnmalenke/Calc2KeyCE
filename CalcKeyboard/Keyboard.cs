@@ -92,7 +92,7 @@ namespace CalcKeyboard
             B = 0x30,
             N = 0x31,
             M = 0x32,
-            COMMA = 0x33,
+            OEMCOMMA = 0x33,
             PERIOD = 0x34,
             SLASH = 0x35,
             RSHIFTKEY = 0x36,

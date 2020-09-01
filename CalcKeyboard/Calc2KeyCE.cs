@@ -7,6 +7,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using WindowsInput;
 
 namespace CalcKeyboard
 {
@@ -16,17 +17,20 @@ namespace CalcKeyboard
         private List<BoundKey> _boundKeys = new List<BoundKey>();
         private bool _connected = false;
         private Dictionary<string, Type> _groupTypes;
-        private List<string> _currentKeys = new List<string>();
+        private Dictionary<string, int> _currentKeys = new Dictionary<string, int>();
         private List<string> _previousKeys = new List<string>();
+        private List<string> _addedKeys = new List<string>();
         private List<string> _currentMouseActions = new List<string>();
         private double _mouseMoveX = 0;
         private double _mouseMoveY = 0;
         private bool _binding = false;
+        private InputSimulator _inputSimulator;
 
         public Calc2KeyCE()
         {
             InitializeComponent();
             KeyPreview = true;
+            _inputSimulator = new InputSimulator();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -119,9 +123,9 @@ namespace CalcKeyboard
 
                     int[] rawKeyboardData = Array.ConvertAll(receivedLine.Split(','), int.Parse);
 
-                    _previousKeys = _currentKeys.ToList();
+                    _previousKeys = _currentKeys.Keys.ToList();
 
-                    _currentKeys = new List<string>();
+                    _addedKeys = new List<string>();
 
                     if (_groupTypes == null)
                     {
@@ -146,15 +150,31 @@ namespace CalcKeyboard
                             {
                                 if ((rawKeyboardData[i] & (int)value) != 0)
                                 {
-                                    _currentKeys.Add(Enum.GetName(currentGroup, value));
+                                    var keyName = Enum.GetName(currentGroup, value);
+
+                                    if (_currentKeys.ContainsKey(keyName))
+                                    {
+                                        _currentKeys[keyName]++;
+                                        _addedKeys.Add(keyName);
+                                    }
+                                    else
+                                    {
+                                        _currentKeys.Add(keyName,1);
+                                        _addedKeys.Add(keyName);
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (_binding && !string.IsNullOrEmpty(_currentKeys.FirstOrDefault()))
+                    //foreach (var key in _currentKeys)
+                    //{
+                    //    Console.WriteLine($"{key.Key}:{key.Value}");
+                    //}
+
+                    if (_binding && !string.IsNullOrEmpty(_addedKeys.FirstOrDefault()))
                     {
-                        CalcKeyBindBox.Invoke((MethodInvoker)(() => CalcKeyBindBox.Text = _currentKeys.FirstOrDefault()));
+                        CalcKeyBindBox.Invoke((MethodInvoker)(() => CalcKeyBindBox.Text = _addedKeys.FirstOrDefault()));
                         label2.Invoke((MethodInvoker)(() => label2.Visible = true));
                         radioButton1.Invoke((MethodInvoker)(() => radioButton1.Visible = true));
                         radioButton2.Invoke((MethodInvoker)(() => radioButton2.Visible = true));
@@ -175,7 +195,7 @@ namespace CalcKeyboard
 
         private void HandleBoundKeys()
         {
-            foreach (var boundKey in _boundKeys.Where(bk => _previousKeys.Except(_currentKeys).Contains(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
+            foreach (var boundKey in _boundKeys.Where(bk => _previousKeys.Except(_addedKeys).Contains(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
             {
                 //keyup
 
@@ -211,15 +231,20 @@ namespace CalcKeyboard
                             break;
                     }
                 }
+
+                _currentKeys.Remove(boundKey.CalcKey.ToString());
             }
 
-            foreach (var boundKey in _boundKeys.Where(bk => _currentKeys.Contains(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
+            foreach (var boundKey in _boundKeys.Where(bk => _currentKeys.ContainsKey(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
             {
                 //keydown
 
                 if (boundKey.KeyboardAction != null)
                 {
-                    Keyboard.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), false, Keyboard.InputType.Keyboard);
+                    if(_currentKeys[boundKey.CalcKey.ToString()] == 1 || _currentKeys[boundKey.CalcKey.ToString()] > 50)
+                    {
+                        Keyboard.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), false, Keyboard.InputType.Keyboard);
+                    }
                 }
 
                 if (boundKey.MouseButtonAction != null && !_currentMouseActions.Contains(boundKey.MouseButtonAction.ToString()))
@@ -266,8 +291,8 @@ namespace CalcKeyboard
             if (Math.Round(_mouseMoveX) != 0 || Math.Round(_mouseMoveY) != 0)
             {
                 var mousePosition = MouseOperations.GetCursorPosition();
-
-                MouseOperations.SetCursorPosition(mousePosition.X + (int)Math.Round(_mouseMoveX), mousePosition.Y + (int)Math.Round(_mouseMoveY));
+                _inputSimulator.Mouse.MoveMouseBy((int)Math.Round(_mouseMoveX), (int)Math.Round(_mouseMoveY));
+               // MouseOperations.SetCursorPosition(mousePosition.X + (int)Math.Round(_mouseMoveX), mousePosition.Y + (int)Math.Round(_mouseMoveY));
             }
         }
 
@@ -486,6 +511,12 @@ namespace CalcKeyboard
                 _boundKeys.RemoveAt(BoundKeyList.SelectedIndex);
                 UpdateBoundKeyList();
             }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            _boundKeys.Clear();
+            UpdateBoundKeyList();
         }
     }
 }

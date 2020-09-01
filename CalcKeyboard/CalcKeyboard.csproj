@@ -1,10 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <Platforms>AnyCPU</Platforms>
+    <AssemblyName>Calc2KeyCE</AssemblyName>
+    <RootNamespace>Calc2KeyCE</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

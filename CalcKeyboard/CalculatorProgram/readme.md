@@ -1,7 +1,7 @@
-### Serial Echo demo
+## Calc2KeyCE
 
-This demo demonstrates using the USB Serial library to echo received bytes back to the sender.
+This program sends all keyboard input from the calculator to Windows using a serial connection.
 
 ---
 
-This demo is a part of the C SDK Toolchain for use on the CE.
+This program won't build/work the current CE Toolchain. Please wait for version 9.

@@ -8,7 +8,7 @@ First we need to build the serial branch of the CE Toolchain to get the librarie
 git clone --recurse-submodules https://github.com/CE-Programming/toolchain.git -b srldrvce 
 
 Follow instructions here to build the toolchain:
-https://ce-programming.github.io/toolchain/static/contributing.html#building-the-ce-c-toolchain
+https://ce-programming.github.io/toolchain/static/contributing.html#building-the-ce-c-toolchain  
 No need to install the toolchain unless you want to contribute to this project
 
 Install TI-Connect CE if you don't already have it

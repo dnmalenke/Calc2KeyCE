@@ -5,6 +5,7 @@ using System.Data;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using WindowsInput;
@@ -91,7 +92,7 @@ namespace CalcKeyboard
             UpdateBoundKeyList();
         }
 
-        private void DisconnectSerial()
+        private Task DisconnectSerial()
         {
             if (_serialPort != null && _serialPort.IsOpen)
             {
@@ -99,9 +100,12 @@ namespace CalcKeyboard
                 {
                     _serialPort.Write("d");
                     _serialPort.DataReceived -= DataReceivedHandler;
+                    _serialPort.Close();
                 }
                 catch { }
             }
+
+            return Task.CompletedTask;
         }
 
         private void SerialErrorReceived(object sender, SerialErrorReceivedEventArgs e)

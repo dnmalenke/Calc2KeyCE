@@ -16,9 +16,9 @@ Install TI-Connect CE if you don't already have it
 Copy all *.8xv files from toolchain/src/ to your calculator
 Copy CALC2KEY.8xp to your calculator and run the program
 
-If "USB CONNECTED" doesn't appear on your screen, try disconnecting and reconnecting the usb cable
+If `USB CONNECTED` doesn't appear on your screen, try disconnecting and reconnecting the usb cable
 
-Once "USB CONNECTED" appears, run Calc2KeyCE.exe and select the COM port associated with your calculator (typically the only one), then hit connect!
+Once `USB CONNECTED` appears, run Calc2KeyCE.exe and select the COM port associated with your calculator (typically the only one), then hit connect!
 Feel free to load example presets located in this repo.
 
 

@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
-using System.IO.Ports;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using RJCP.IO.Ports;
 using WindowsInput;
 
 namespace CalcKeyboard
 {
     public partial class Calc2KeyCE : Form
     {
-        private static SerialPort _serialPort;
+        private static SerialPortStream _serialPort;
         private List<BoundKey> _boundKeys = new List<BoundKey>();
         private bool _connected = false;
         private Dictionary<string, Type> _groupTypes;
@@ -24,6 +24,7 @@ namespace CalcKeyboard
         private List<string> _currentMouseActions = new List<string>();
         private double _mouseMoveX = 0;
         private double _mouseMoveY = 0;
+        private const double _mouseMoveIncrement = 0.05;
         private bool _binding = false;
         private InputSimulator _inputSimulator;
 
@@ -36,30 +37,29 @@ namespace CalcKeyboard
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            DeviceSelector.Items.AddRange(SerialPort.GetPortNames().Distinct().ToArray());
+            DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
             UpdateBoundKeyList();
         }
 
         private void RefreshBtnClick(object sender, EventArgs e)
         {
             DeviceSelector.Items.Clear();
-            DeviceSelector.Items.AddRange(SerialPort.GetPortNames().Distinct().ToArray());
+            DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
         }
 
         private void ConnectBtnClick(object sender, EventArgs e)
         {
             if (DeviceSelector.SelectedItem != null && !_connected)
             {
-                _serialPort = new SerialPort();
 
-                _serialPort.PortName = DeviceSelector.SelectedItem.ToString();
+                _serialPort = new SerialPortStream(DeviceSelector.SelectedItem.ToString());
 
                 _serialPort.DataReceived += DataReceivedHandler;
                 _serialPort.ErrorReceived += SerialErrorReceived;
 
                 try
                 {
-                    _serialPort.Open();
+                    _serialPort.OpenDirect();
                     _serialPort.Write("c");
 
                     _connected = true;
@@ -98,7 +98,7 @@ namespace CalcKeyboard
             {
                 try
                 {
-                    _serialPort.Write("d");
+                    _serialPort.Write("d");                    
                     _serialPort.DataReceived -= DataReceivedHandler;
                     _serialPort.Close();
                 }
@@ -117,77 +117,80 @@ namespace CalcKeyboard
         {
             try
             {
-                string receivedLine = _serialPort.ReadLine();
+                string receivedData = _serialPort.ReadExisting();
 
-                receivedLine = receivedLine.Replace("\0", string.Empty);
+                receivedData = receivedData.Replace("\0", string.Empty);
 
-                if (receivedLine.StartsWith('s'))
+                foreach (var line in receivedData.Split('\n'))
                 {
-                    receivedLine = receivedLine.Trim('s', ',');
+                    string receivedLine = line;
 
-                    int[] rawKeyboardData = Array.ConvertAll(receivedLine.Split(','), int.Parse);
-
-                    _previousKeys = _currentKeys.Keys.ToList();
-
-                    _addedKeys = new List<string>();
-
-                    if (_groupTypes == null)
+                    if (receivedLine.StartsWith('s'))
                     {
-                        _groupTypes = new Dictionary<string, Type>();
+                        receivedLine = receivedLine.Trim('s', ',');
 
-                        foreach (var member in typeof(CalculatorKeyboard).GetMembers())
+                        int[] rawKeyboardData = Array.ConvertAll(receivedLine.Split(','), int.Parse);
+
+                        if (rawKeyboardData.Length == 7)
                         {
-                            if (member.Name.StartsWith("Group"))
-                            {
-                                _groupTypes.Add(member.Name, Type.GetType($"{typeof(CalculatorKeyboard).FullName}+{member.Name}"));
-                            }
-                        }
-                    }
+                            _previousKeys = _currentKeys.Keys.ToList();
 
-                    for (int i = 0; i < rawKeyboardData.Length; i++)
-                    {
-                        Type currentGroup = _groupTypes[$"Group{i + 1}"];
+                            _addedKeys = new List<string>();
 
-                        if (currentGroup != null)
-                        {
-                            foreach (var value in Enum.GetValues(currentGroup))
+                            if (_groupTypes == null)
                             {
-                                if ((rawKeyboardData[i] & (int)value) != 0)
+                                _groupTypes = new Dictionary<string, Type>();
+
+                                foreach (var member in typeof(CalculatorKeyboard).GetMembers())
                                 {
-                                    var keyName = Enum.GetName(currentGroup, value);
-
-                                    if (_currentKeys.ContainsKey(keyName))
+                                    if (member.Name.StartsWith("Group"))
                                     {
-                                        _currentKeys[keyName]++;
-                                        _addedKeys.Add(keyName);
-                                    }
-                                    else
-                                    {
-                                        _currentKeys.Add(keyName,1);
-                                        _addedKeys.Add(keyName);
+                                        _groupTypes.Add(member.Name, Type.GetType($"{typeof(CalculatorKeyboard).FullName}+{member.Name}"));
                                     }
                                 }
                             }
+
+                            for (int i = 0; i < rawKeyboardData.Length; i++)
+                            {
+                                Type currentGroup = _groupTypes[$"Group{i + 1}"];
+
+                                if (currentGroup != null)
+                                {
+                                    foreach (var value in Enum.GetValues(currentGroup))
+                                    {
+                                        if ((rawKeyboardData[i] & (int)value) != 0)
+                                        {
+                                            var keyName = Enum.GetName(currentGroup, value);
+
+                                            if (_currentKeys.ContainsKey(keyName))
+                                            {
+                                                _currentKeys[keyName]++;
+                                                _addedKeys.Add(keyName);
+                                            }
+                                            else
+                                            {
+                                                _currentKeys.Add(keyName, 1);
+                                                _addedKeys.Add(keyName);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (_binding && !string.IsNullOrEmpty(_addedKeys.FirstOrDefault()))
+                            {
+                                CalcKeyBindBox.Invoke((MethodInvoker)(() => CalcKeyBindBox.Text = _addedKeys.FirstOrDefault()));
+                                label2.Invoke((MethodInvoker)(() => label2.Visible = true));
+                                radioButton1.Invoke((MethodInvoker)(() => radioButton1.Visible = true));
+                                radioButton2.Invoke((MethodInvoker)(() => radioButton2.Visible = true));
+                                radioButton3.Invoke((MethodInvoker)(() => radioButton3.Visible = true));
+                                _binding = false;
+                            }
+                            else
+                            {
+                                HandleBoundKeys(receivedLine);
+                            }
                         }
-                    }
-
-                    //foreach (var key in _currentKeys)
-                    //{
-                    //    Console.WriteLine($"{key.Key}:{key.Value}");
-                    //}
-
-                    if (_binding && !string.IsNullOrEmpty(_addedKeys.FirstOrDefault()))
-                    {
-                        CalcKeyBindBox.Invoke((MethodInvoker)(() => CalcKeyBindBox.Text = _addedKeys.FirstOrDefault()));
-                        label2.Invoke((MethodInvoker)(() => label2.Visible = true));
-                        radioButton1.Invoke((MethodInvoker)(() => radioButton1.Visible = true));
-                        radioButton2.Invoke((MethodInvoker)(() => radioButton2.Visible = true));
-                        radioButton3.Invoke((MethodInvoker)(() => radioButton3.Visible = true));
-                        _binding = false;
-                    }
-                    else
-                    {
-                        HandleBoundKeys();
                     }
                 }
             }
@@ -197,7 +200,7 @@ namespace CalcKeyboard
             }
         }
 
-        private void HandleBoundKeys()
+        private void HandleBoundKeys(string r)
         {
             foreach (var boundKey in _boundKeys.Where(bk => _previousKeys.Except(_addedKeys).Contains(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
             {
@@ -245,7 +248,7 @@ namespace CalcKeyboard
 
                 if (boundKey.KeyboardAction != null)
                 {
-                    if(_currentKeys[boundKey.CalcKey.ToString()] == 1 || _currentKeys[boundKey.CalcKey.ToString()] > 50)
+                    if (_currentKeys[boundKey.CalcKey.ToString()] == 1 || _currentKeys[boundKey.CalcKey.ToString()] > 50)
                     {
                         Keyboard.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), false, Keyboard.InputType.Keyboard);
                     }
@@ -265,25 +268,25 @@ namespace CalcKeyboard
                         case MouseOperations.MouseMoveActions.MoveDown:
                             if (_mouseMoveY < double.MaxValue)
                             {
-                                _mouseMoveY += 0.1;
+                                _mouseMoveY += _mouseMoveIncrement;
                             }
                             break;
                         case MouseOperations.MouseMoveActions.MoveUp:
                             if (_mouseMoveY > double.MinValue)
                             {
-                                _mouseMoveY -= 0.1;
+                                _mouseMoveY -= _mouseMoveIncrement;
                             }
                             break;
                         case MouseOperations.MouseMoveActions.MoveLeft:
                             if (_mouseMoveX > double.MinValue)
                             {
-                                _mouseMoveX -= 0.1;
+                                _mouseMoveX -= _mouseMoveIncrement;
                             }
                             break;
                         case MouseOperations.MouseMoveActions.MoveRight:
                             if (_mouseMoveX < double.MaxValue)
                             {
-                                _mouseMoveX += 0.1;
+                                _mouseMoveX += _mouseMoveIncrement;
                             }
                             break;
                         default:
@@ -296,7 +299,6 @@ namespace CalcKeyboard
             {
                 var mousePosition = MouseOperations.GetCursorPosition();
                 _inputSimulator.Mouse.MoveMouseBy((int)Math.Round(_mouseMoveX), (int)Math.Round(_mouseMoveY));
-               // MouseOperations.SetCursorPosition(mousePosition.X + (int)Math.Round(_mouseMoveX), mousePosition.Y + (int)Math.Round(_mouseMoveY));
             }
         }
 

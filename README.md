@@ -5,7 +5,7 @@ This is a C# program that reads serial input from a TI-84 Plus CE calculator and
 ## Installation Instructions:
 
 First we need to build the serial branch of the CE Toolchain to get the libraries to install on the calculator.
-git clone --recurse-submodules https://github.com/CE-Programming/toolchain.git -b srldrvce 
+`git clone --recurse-submodules https://github.com/CE-Programming/toolchain.git -b srldrvce`
 
 Follow instructions here to build the toolchain:
 https://ce-programming.github.io/toolchain/static/contributing.html#building-the-ce-c-toolchain  

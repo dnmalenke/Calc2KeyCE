@@ -2,7 +2,7 @@
 
 This is a C# program that reads serial input from a TI-84 Plus CE calculator and allows the user to bind calculator keys to keyboard keys or mouse actions.
 
-Installation Instructions:
+## Installation Instructions:
 
 First we need to build the serial branch of the CE Toolchain to get the libraries to install on the calculator.
 git clone --recurse-submodules https://github.com/CE-Programming/toolchain.git -b srldrvce 

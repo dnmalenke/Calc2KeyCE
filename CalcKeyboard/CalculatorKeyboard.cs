@@ -1,5 +1,6 @@
 ﻿namespace Calc2KeyCE
 {
+    //https://ce-programming.github.io/toolchain/libraries/keypadc.html#c.kb_Data
     public static class CalculatorKeyboard
     {
         public enum Group1

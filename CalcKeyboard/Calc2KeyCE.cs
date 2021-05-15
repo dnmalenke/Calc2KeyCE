@@ -18,127 +18,27 @@ namespace Calc2KeyCE
 {
     public partial class Calc2KeyCE : Form
     {
-        private List<BoundKey> _boundKeys = new List<BoundKey>();
         private bool _connected = false;
+        private List<BoundKey> _boundKeys = new();
         private Dictionary<string, Type> _groupTypes;
-        private Dictionary<string, int> _currentKeys = new Dictionary<string, int>();
-        private List<string> _previousKeys = new List<string>();
-        private List<string> _addedKeys = new List<string>();
-        private List<string> _currentMouseActions = new List<string>();
-        private double _mouseMoveX = 0;
-        private double _mouseMoveY = 0;
-        private const double _mouseMoveIncrement = 0.05;
+        private Dictionary<string, int> _currentKeys = new();
+        private List<string> _previousKeys = new();
+        private List<string> _addedKeys = new();
         private bool _binding = false;
-        private InputSimulator _inputSimulator;
         private UsbDevice _calculator;
         private UsbEndpointWriter _calcWriter;
         private UsbEndpointReader _calcReader;
-        private (byte[] compressedImage, byte[] uncompressedImage) _prevImages;
-        private Thread _sendThread;
-        private Thread _screenThread;
+        private ScreenMirror _screenMirror;
 
         public Calc2KeyCE()
         {
             InitializeComponent();
             KeyPreview = true;
-            _inputSimulator = new InputSimulator();
-        }
-
-        private Bitmap CaptureMonitor(Screen monitor)
-        {
-            Rectangle monitorRect = monitor.Bounds;
-            Bitmap resultBmp = null;
-            HWND desktopWindow = User32_Gdi.GetDesktopWindow();
-            HDC windowDc = User32_Gdi.GetWindowDC(desktopWindow);
-            HDC memDc = Gdi32.CreateCompatibleDC(windowDc);
-            var bitmap = Gdi32.CreateCompatibleBitmap(windowDc, monitorRect.Width, monitorRect.Height);
-            var oldBitmap = Gdi32.SelectObject(memDc, bitmap);
-
-            bool result = Gdi32.BitBlt(memDc, 0, 0, monitorRect.Width, monitorRect.Height, windowDc, 0, 0, Gdi32.RasterOperationMode.SRCCOPY);
-
-            if (result)
-            {
-                resultBmp = bitmap.ToBitmap();
-            }
-
-            Gdi32.SelectObject(memDc, oldBitmap);
-            Gdi32.DeleteObject(bitmap);
-            Gdi32.DeleteDC(memDc);
-            User32_Gdi.ReleaseDC(desktopWindow, windowDc);
-
-            return resultBmp;
-        }
-
-        private unsafe void GetScreenArray()
-        {
-            while (_connected)
-            {
-                var result = CaptureMonitor(Screen.AllScreens.First());
-                var shrunkImage = result.GetThumbnailImage(320, 240, null, IntPtr.Zero);
-                shrunkImage.RotateFlip(RotateFlipType.Rotate180FlipX);
-
-                Bitmap clone = new Bitmap(shrunkImage.Width, shrunkImage.Height, PixelFormat.Format16bppRgb565);
-
-                using (Graphics gr = Graphics.FromImage(clone))
-                {
-                    gr.DrawImage(shrunkImage, new Rectangle(0, 0, clone.Width, clone.Height));
-                }
-
-                _prevImages.uncompressedImage = clone.ToByteArray(ImageFormat.Bmp);
-
-                long d = 0;
-                long opZ = 0;
-
-                Optimal[] opp = Optimize.optimize(_prevImages.uncompressedImage, (uint)_prevImages.uncompressedImage.Length, 66);
-                _prevImages.compressedImage = Compress.compress(opp, _prevImages.uncompressedImage, (uint)_prevImages.uncompressedImage.Length, 66, ref d, ref opZ);
-
-                clone.Dispose();
-                result.Dispose();
-                shrunkImage.Dispose();
-
-                if (!_sendThread.IsAlive && _connected)
-                {
-                    _sendThread.Start();
-                }
-            }
-        }
-
-        private void SendScreenToCalc()
-        {
-            ErrorCode c;
-            while (_connected)
-            {
-                if (_prevImages.compressedImage != null)
-                {
-                    if (_prevImages.compressedImage.Length >= 51200)
-                    {
-                        _calcWriter.Write(153600, 1000, out _);
-                        c = _calcWriter.Write(_prevImages.uncompressedImage, 66, 153600, 10000, out _);
-                    }
-                    else
-                    {
-                        _calcWriter.Write(BitConverter.GetBytes(_prevImages.compressedImage.Length).ToArray(), 1000, out _);
-                        c = _calcWriter.Write(_prevImages.compressedImage, 0, _prevImages.compressedImage.Length, 1000, out _);
-                    }
-
-                    if (c != ErrorCode.Success)
-                    {
-                        Console.WriteLine(c);
-                    }
-                }
-            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //  DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
             UpdateBoundKeyList();
-        }
-
-        private void RefreshBtnClick(object sender, EventArgs e)
-        {
-            //  DeviceSelector.Items.Clear();
-            // DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
         }
 
         private void ConnectBtnClick(object sender, EventArgs e)
@@ -146,6 +46,7 @@ namespace Calc2KeyCE
             if (!_connected)
             {
                 UsbRegDeviceList allDevices = UsbDevice.AllDevices;
+
                 foreach (UsbRegistry usbRegistry in allDevices)
                 {
                     if (usbRegistry.Open(out _calculator))
@@ -172,10 +73,8 @@ namespace Calc2KeyCE
 
                     if (checkBox1.Checked)
                     {
-                        _screenThread = new Thread(new ThreadStart(GetScreenArray));
-                        _sendThread = new Thread(new ThreadStart(SendScreenToCalc));
-
-                        _screenThread.Start();
+                        _screenMirror = new(ref _calcWriter);
+                        _screenMirror.StartMirroring();
                     }
                     else
                     {
@@ -185,20 +84,9 @@ namespace Calc2KeyCE
             }
             else
             {
-                _connected = false;
+                DisconnectUsb();
 
-                if (_sendThread != null)
-                {
-                    _sendThread.Join();
-                }
-
-                SendConnectDisconnectMessage();
-                _calcWriter.Dispose();
-                _calcWriter = null;
-                _calcReader.Dispose();
-                _calcReader = null;
-                UsbDevice.Exit();
-                _calculator = null;
+                // UI Stuff
                 ConnectBtn.Text = "Connect";
                 button3.Visible = false;
                 KeyBindingBox.Visible = false;
@@ -270,131 +158,8 @@ namespace Calc2KeyCE
             }
             else
             {
-                HandleBoundKeys();
+                KeyHandler.HandleBoundKeys(_boundKeys, _currentKeys, _previousKeys, _addedKeys);
             }
-        }
-
-        private void HandleBoundKeys()
-        {
-            foreach (var boundKey in _boundKeys.Where(bk => _previousKeys.Except(_addedKeys).Contains(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
-            {
-                //keyup
-
-                if (boundKey.KeyboardAction != null)
-                {
-                    Keyboard.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), true, Keyboard.InputType.Keyboard);
-                }
-
-                if (boundKey.MouseButtonAction != null)
-                {
-                    MouseOperations.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, true));
-
-                    _currentMouseActions.Remove(boundKey.MouseButtonAction.ToString());
-                }
-
-                if (boundKey.MouseMoveAction != null)
-                {
-                    switch (boundKey.MouseMoveAction.Value)
-                    {
-                        case MouseOperations.MouseMoveActions.MoveDown:
-                            _mouseMoveY = 0;
-                            break;
-                        case MouseOperations.MouseMoveActions.MoveUp:
-                            _mouseMoveY = 0;
-                            break;
-                        case MouseOperations.MouseMoveActions.MoveLeft:
-                            _mouseMoveX = 0;
-                            break;
-                        case MouseOperations.MouseMoveActions.MoveRight:
-                            _mouseMoveX = 0;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                _currentKeys.Remove(boundKey.CalcKey.ToString());
-            }
-
-            foreach (var boundKey in _boundKeys.Where(bk => _currentKeys.ContainsKey(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
-            {
-                //keydown
-
-                if (boundKey.KeyboardAction != null)
-                {
-                    if (_currentKeys[boundKey.CalcKey.ToString()] == 1 || _currentKeys[boundKey.CalcKey.ToString()] > 50)
-                    {
-                        Keyboard.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), false, Keyboard.InputType.Keyboard);
-                    }
-                }
-
-                if (boundKey.MouseButtonAction != null && !_currentMouseActions.Contains(boundKey.MouseButtonAction.ToString()))
-                {
-                    MouseOperations.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, false));
-
-                    _currentMouseActions.Add(boundKey.MouseButtonAction.ToString());
-                }
-
-                if (boundKey.MouseMoveAction != null)
-                {
-                    switch (boundKey.MouseMoveAction.Value)
-                    {
-                        case MouseOperations.MouseMoveActions.MoveDown:
-                            if (_mouseMoveY < double.MaxValue)
-                            {
-                                _mouseMoveY += _mouseMoveIncrement;
-                            }
-                            break;
-                        case MouseOperations.MouseMoveActions.MoveUp:
-                            if (_mouseMoveY > double.MinValue)
-                            {
-                                _mouseMoveY -= _mouseMoveIncrement;
-                            }
-                            break;
-                        case MouseOperations.MouseMoveActions.MoveLeft:
-                            if (_mouseMoveX > double.MinValue)
-                            {
-                                _mouseMoveX -= _mouseMoveIncrement;
-                            }
-                            break;
-                        case MouseOperations.MouseMoveActions.MoveRight:
-                            if (_mouseMoveX < double.MaxValue)
-                            {
-                                _mouseMoveX += _mouseMoveIncrement;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            if (Math.Round(_mouseMoveX) != 0 || Math.Round(_mouseMoveY) != 0)
-            {
-                var mousePosition = MouseOperations.GetCursorPosition();
-                _inputSimulator.Mouse.MoveMouseBy((int)Math.Round(_mouseMoveX), (int)Math.Round(_mouseMoveY));
-            }
-        }
-
-        private Keyboard.DirectXKeyStrokes GetDirectXKeyStroke(Keys keyboardKey)
-        {
-            return (Keyboard.DirectXKeyStrokes)Enum.Parse(typeof(Keyboard.DirectXKeyStrokes), keyboardKey.ToString(), true);
-        }
-
-        private MouseOperations.MouseEventFlags GetMouseEventFlag(MouseButtons mouseAction, bool mouseUp = false)
-        {
-            string mouseActionString = mouseAction.ToString();
-
-            if (mouseUp)
-            {
-                mouseActionString += "Up";
-            }
-            else
-            {
-                mouseActionString += "Down";
-            }
-
-            return (MouseOperations.MouseEventFlags)Enum.Parse(typeof(MouseOperations.MouseEventFlags), mouseActionString, true);
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -413,22 +178,32 @@ namespace Calc2KeyCE
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            DisconnectUsb();
+        }
+
+        private void DisconnectUsb()
+        {
             try
             {
-                SendConnectDisconnectMessage();
                 _connected = false;
-
-                if (_sendThread != null)
+                if (_screenMirror != null)
                 {
-                    _sendThread.Join();
+                    _screenMirror.StopMirroring();
+                    _screenMirror = null;
                 }
-                _calcWriter.Dispose();
-                _calcWriter = null;
-                _calcReader.Dispose();
-                _calcReader = null;
+                SendConnectDisconnectMessage();
+
+                if (_calcWriter != null)
+                {
+                    _calcWriter.Dispose();
+                    _calcWriter = null;
+                    _calcReader.Dispose();
+                    _calcReader = null;
+                }
                 _calculator = null;
 
                 UsbDevice.Exit();
+
             }
             catch { }
         }

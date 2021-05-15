@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -23,7 +23,7 @@
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
     <PackageReference Include="Vanara.PInvoke.Gdi32" Version="3.3.9" />
-    <PackageReference Include="Vanara.PInvoke.User32.Gdi" Version="2.3.10" />
+    <PackageReference Include="Vanara.PInvoke.User32" Version="3.3.9" />
   </ItemGroup>
 
   <ItemGroup>

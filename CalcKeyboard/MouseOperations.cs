@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Runtime.InteropServices;
 
 namespace Calc2KeyCE
 {
-    using System;
-    using System.Runtime.InteropServices;
-
+    // https://stackoverflow.com/a/7121314
     public class MouseOperations
     {
         [Flags]

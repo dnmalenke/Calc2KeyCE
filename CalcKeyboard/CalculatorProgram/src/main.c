@@ -1,6 +1,5 @@
 typedef struct global global_t;
 #define usb_callback_data_t global_t
-#define safe_Ram ((volatile uint16_t*)0xD031F6)
 
 #include <compression.h>
 #include <usbdrvce.h>
@@ -28,8 +27,9 @@ struct global
 static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data);
 static usb_error_t handleUsbEvent(usb_event_t event, void* event_data, usb_callback_data_t* callback_data);
 
-void* buff;
 global_t global;
+uint32_t screenSize = 4;
+uint32_t prog = 0;
 bool connected = false;
 
 int main(void)
@@ -107,9 +107,6 @@ int main(void)
 	return 0;
 }
 
-uint32_t screenSize = 4;
-uint32_t prog = 0;
-
 static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data)
 {
 	if (prog != UINT32_MAX)
@@ -179,7 +176,6 @@ static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t 
 	}
 
 	free(data);
-	free(buff);
 	return USB_SUCCESS;
 }
 

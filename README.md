@@ -18,7 +18,9 @@ Download and Copy the CE C 'Standard' Libraries https://github.com/CE-Programmin
 Copy your newly built usbdrvce.8xv to your calculator
 Copy CALC2KEY.8xp to your calculator and run the program
 
-Run CALC2KEY on your calculator, then run Calc2KeyCE and hit connect.
+If it is your first time, use a program like Zadig https://zadig.akeo.ie/ to install the libusb-win32 driver for USB ID 0451 E009
+
+Then run Calc2KeyCE and hit connect.
 Feel free to load example presets located in this repo.
 
 

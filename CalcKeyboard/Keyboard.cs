@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace CalcKeyboard
+namespace Calc2KeyCE
 {
     /// <summary>
     /// StackOverflow question as reference: https://stackoverflow.com/questions/35138778/sending-keys-to-a-directx-game

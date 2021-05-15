@@ -2,19 +2,22 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
+using LibUsbDotNet;
+using LibUsbDotNet.Main;
 using Newtonsoft.Json;
-using RJCP.IO.Ports;
+using Vanara.PInvoke;
 using WindowsInput;
 
-namespace CalcKeyboard
+namespace Calc2KeyCE
 {
     public partial class Calc2KeyCE : Form
     {
-        private static SerialPortStream _serialPort;
         private List<BoundKey> _boundKeys = new List<BoundKey>();
         private bool _connected = false;
         private Dictionary<string, Type> _groupTypes;
@@ -27,6 +30,12 @@ namespace CalcKeyboard
         private const double _mouseMoveIncrement = 0.05;
         private bool _binding = false;
         private InputSimulator _inputSimulator;
+        private UsbDevice _calculator;
+        private UsbEndpointWriter _calcWriter;
+        private UsbEndpointReader _calcReader;
+        private (byte[] compressedImage, byte[] uncompressedImage) _prevImages;
+        private Thread _sendThread;
+        private Thread _screenThread;
 
         public Calc2KeyCE()
         {
@@ -35,33 +44,124 @@ namespace CalcKeyboard
             _inputSimulator = new InputSimulator();
         }
 
+        private Bitmap CaptureMonitor(Screen monitor)
+        {
+            Rectangle monitorRect = monitor.Bounds;
+            Bitmap resultBmp = null;
+            HWND desktopWindow = User32_Gdi.GetDesktopWindow();
+            HDC windowDc = User32_Gdi.GetWindowDC(desktopWindow);
+            HDC memDc = Gdi32.CreateCompatibleDC(windowDc);
+            var bitmap = Gdi32.CreateCompatibleBitmap(windowDc, monitorRect.Width, monitorRect.Height);
+            var oldBitmap = Gdi32.SelectObject(memDc, bitmap);
+
+            bool result = Gdi32.BitBlt(memDc, 0, 0, monitorRect.Width, monitorRect.Height, windowDc, 0, 0, Gdi32.RasterOperationMode.SRCCOPY);
+
+            if (result)
+            {
+                resultBmp = bitmap.ToBitmap();
+            }
+
+            Gdi32.SelectObject(memDc, oldBitmap);
+            Gdi32.DeleteObject(bitmap);
+            Gdi32.DeleteDC(memDc);
+            User32_Gdi.ReleaseDC(desktopWindow, windowDc);
+
+            return resultBmp;
+        }
+
+        private unsafe void GetScreenArray()
+        {
+            while (_connected)
+            {
+                var result = CaptureMonitor(Screen.AllScreens.First());
+                var shrunkImage = result.GetThumbnailImage(320, 240, null, IntPtr.Zero);
+                shrunkImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+
+                Bitmap clone = new Bitmap(shrunkImage.Width, shrunkImage.Height, PixelFormat.Format16bppRgb565);
+
+                using (Graphics gr = Graphics.FromImage(clone))
+                {
+                    gr.DrawImage(shrunkImage, new Rectangle(0, 0, clone.Width, clone.Height));
+                }
+
+                _prevImages.uncompressedImage = clone.ToByteArray(ImageFormat.Bmp);
+
+                long d = 0;
+                long opZ = 0;
+
+                Optimal[] opp = Optimize.optimize(_prevImages.uncompressedImage, (uint)_prevImages.uncompressedImage.Length, 66);
+                _prevImages.compressedImage = Compress.compress(opp, _prevImages.uncompressedImage, (uint)_prevImages.uncompressedImage.Length, 66, ref d, ref opZ);
+
+                clone.Dispose();
+                result.Dispose();
+                shrunkImage.Dispose();
+
+                if (!_sendThread.IsAlive)
+                {
+                    _sendThread.Start();
+                }
+            }
+        }
+
+        private void SendScreenToCalc()
+        {
+            ErrorCode c;
+            while (_connected)
+            {
+                if (_prevImages.compressedImage != null)
+                {
+                    if (_prevImages.compressedImage.Length >= 51200)
+                    {
+                        _calcWriter.Write(153600, 1000, out _);
+                        c = _calcWriter.Write(_prevImages.uncompressedImage, 66, 153600, 10000, out _);
+                    }
+                    else
+                    {
+                        _calcWriter.Write(BitConverter.GetBytes(_prevImages.compressedImage.Length).ToArray(), 1000, out _);
+                        c = _calcWriter.Write(_prevImages.compressedImage, 0, _prevImages.compressedImage.Length, 1000, out _);
+                    }
+
+                    if (c != ErrorCode.Success)
+                    {
+                        Console.WriteLine(c);
+                    }
+                }
+            }
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
-            DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
+            //  DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
             UpdateBoundKeyList();
         }
 
         private void RefreshBtnClick(object sender, EventArgs e)
         {
-            DeviceSelector.Items.Clear();
-            DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
+            //  DeviceSelector.Items.Clear();
+            // DeviceSelector.Items.AddRange(SerialPortStream.GetPortNames().Distinct().ToArray());
         }
 
         private void ConnectBtnClick(object sender, EventArgs e)
         {
-            if (DeviceSelector.SelectedItem != null && !_connected)
+            if (!_connected)
             {
-
-                _serialPort = new SerialPortStream(DeviceSelector.SelectedItem.ToString());
-
-                _serialPort.DataReceived += DataReceivedHandler;
-                _serialPort.ErrorReceived += SerialErrorReceived;
-
-                try
+                UsbRegDeviceList allDevices = UsbDevice.AllDevices;
+                foreach (UsbRegistry usbRegistry in allDevices)
                 {
-                    _serialPort.OpenDirect();
-                    _serialPort.Write("c");
+                    if (usbRegistry.Open(out _calculator))
+                    {
+                        if (_calculator.Info.Descriptor.VendorID == 0x0451 && _calculator.Info.Descriptor.ProductID == -8183)
+                        {
+                            _calcWriter = _calculator.OpenEndpointWriter(WriteEndpointID.Ep02);
+                            _calcReader = _calculator.OpenEndpointReader(ReadEndpointID.Ep01);
+                            _calcReader.DataReceivedEnabled = true;
+                            _calcReader.DataReceived += new EventHandler<EndpointDataEventArgs>(DataReceivedHandler);
+                        }
+                    }
+                }
 
+                if (_calcWriter != null && _calcReader != null)
+                {
                     _connected = true;
                     ConnectBtn.Text = "Disconnect";
                     DeviceSelector.Enabled = false;
@@ -69,16 +169,15 @@ namespace CalcKeyboard
                     SaveBtn.Visible = true;
                     button1.Visible = true;
                     button2.Visible = true;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
+
+                    _screenThread = new Thread(new ThreadStart(GetScreenArray));
+                    _sendThread = new Thread(new ThreadStart(SendScreenToCalc));
+
+                    _screenThread.Start();
                 }
             }
             else
             {
-                DisconnectSerial();
-
                 _connected = false;
                 ConnectBtn.Text = "Connect";
                 DeviceSelector.Enabled = true;
@@ -92,115 +191,70 @@ namespace CalcKeyboard
             UpdateBoundKeyList();
         }
 
-        private Task DisconnectSerial()
+        private void DataReceivedHandler(object sender, EndpointDataEventArgs e)
         {
-            if (_serialPort != null && _serialPort.IsOpen)
+            byte[] rawKeyboardData = e.Buffer.Take(7).ToArray();
+
+            _previousKeys = _currentKeys.Keys.ToList();
+
+            _addedKeys = new List<string>();
+
+            if (_groupTypes == null)
             {
-                try
+                _groupTypes = new Dictionary<string, Type>();
+
+                foreach (var member in typeof(CalculatorKeyboard).GetMembers())
                 {
-                    _serialPort.Write("d");                    
-                    _serialPort.DataReceived -= DataReceivedHandler;
-                    _serialPort.Close();
+                    if (member.Name.StartsWith("Group"))
+                    {
+                        _groupTypes.Add(member.Name, Type.GetType($"{typeof(CalculatorKeyboard).FullName}+{member.Name}"));
+                    }
                 }
-                catch { }
             }
 
-            return Task.CompletedTask;
-        }
-
-        private void SerialErrorReceived(object sender, SerialErrorReceivedEventArgs e)
-        {
-            MessageBox.Show(e.EventType.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
-        {
-            try
+            for (int i = 0; i < rawKeyboardData.Length; i++)
             {
-                string receivedData = _serialPort.ReadExisting();
+                Type currentGroup = _groupTypes[$"Group{i + 1}"];
 
-                receivedData = receivedData.Replace("\0", string.Empty);
-
-                foreach (var line in receivedData.Split('\n'))
+                if (currentGroup != null)
                 {
-                    string receivedLine = line;
-
-                    if (receivedLine.StartsWith('s'))
+                    foreach (var value in Enum.GetValues(currentGroup))
                     {
-                        receivedLine = receivedLine.Trim('s', ',');
-
-                        int[] rawKeyboardData = Array.ConvertAll(receivedLine.Split(','), int.Parse);
-
-                        if (rawKeyboardData.Length == 7)
+                        if ((rawKeyboardData[i] & (int)value) != 0)
                         {
-                            _previousKeys = _currentKeys.Keys.ToList();
+                            var keyName = Enum.GetName(currentGroup, value);
 
-                            _addedKeys = new List<string>();
-
-                            if (_groupTypes == null)
+                            if (_currentKeys.ContainsKey(keyName))
                             {
-                                _groupTypes = new Dictionary<string, Type>();
-
-                                foreach (var member in typeof(CalculatorKeyboard).GetMembers())
-                                {
-                                    if (member.Name.StartsWith("Group"))
-                                    {
-                                        _groupTypes.Add(member.Name, Type.GetType($"{typeof(CalculatorKeyboard).FullName}+{member.Name}"));
-                                    }
-                                }
-                            }
-
-                            for (int i = 0; i < rawKeyboardData.Length; i++)
-                            {
-                                Type currentGroup = _groupTypes[$"Group{i + 1}"];
-
-                                if (currentGroup != null)
-                                {
-                                    foreach (var value in Enum.GetValues(currentGroup))
-                                    {
-                                        if ((rawKeyboardData[i] & (int)value) != 0)
-                                        {
-                                            var keyName = Enum.GetName(currentGroup, value);
-
-                                            if (_currentKeys.ContainsKey(keyName))
-                                            {
-                                                _currentKeys[keyName]++;
-                                                _addedKeys.Add(keyName);
-                                            }
-                                            else
-                                            {
-                                                _currentKeys.Add(keyName, 1);
-                                                _addedKeys.Add(keyName);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (_binding && !string.IsNullOrEmpty(_addedKeys.FirstOrDefault()))
-                            {
-                                CalcKeyBindBox.Invoke((MethodInvoker)(() => CalcKeyBindBox.Text = _addedKeys.FirstOrDefault()));
-                                label2.Invoke((MethodInvoker)(() => label2.Visible = true));
-                                radioButton1.Invoke((MethodInvoker)(() => radioButton1.Visible = true));
-                                radioButton2.Invoke((MethodInvoker)(() => radioButton2.Visible = true));
-                                radioButton3.Invoke((MethodInvoker)(() => radioButton3.Visible = true));
-                                _binding = false;
+                                _currentKeys[keyName]++;
+                                _addedKeys.Add(keyName);
                             }
                             else
                             {
-                                HandleBoundKeys(receivedLine);
+                                _currentKeys.Add(keyName, 1);
+                                _addedKeys.Add(keyName);
                             }
                         }
                     }
                 }
             }
-            catch (Exception ex)
+
+            if (_binding && !string.IsNullOrEmpty(_addedKeys.FirstOrDefault()))
             {
-                Console.WriteLine(ex.Message);
+                CalcKeyBindBox.Invoke((MethodInvoker)(() => CalcKeyBindBox.Text = _addedKeys.FirstOrDefault()));
+                label2.Invoke((MethodInvoker)(() => label2.Visible = true));
+                radioButton1.Invoke((MethodInvoker)(() => radioButton1.Visible = true));
+                radioButton2.Invoke((MethodInvoker)(() => radioButton2.Visible = true));
+                radioButton3.Invoke((MethodInvoker)(() => radioButton3.Visible = true));
+                _binding = false;
+            }
+            else
+            {
+                HandleBoundKeys();
             }
         }
 
-        private void HandleBoundKeys(string r)
+        private void HandleBoundKeys()
         {
             foreach (var boundKey in _boundKeys.Where(bk => _previousKeys.Except(_addedKeys).Contains(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
             {
@@ -331,7 +385,8 @@ namespace CalcKeyboard
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            DisconnectSerial();
+            // send close message to calc
+            UsbDevice.Exit();
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)

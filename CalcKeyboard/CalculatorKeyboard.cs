@@ -1,4 +1,4 @@
-﻿namespace CalcKeyboard
+﻿namespace Calc2KeyCE
 {
     public static class CalculatorKeyboard
     {

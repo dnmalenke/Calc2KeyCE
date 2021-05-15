@@ -9,11 +9,21 @@
     <RootNamespace>Calc2KeyCE</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="InputSimulatorCore" Version="1.0.5" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="SerialPortStream" Version="2.2.2" />
-    <PackageReference Include="System.IO.Ports" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
+    <PackageReference Include="System.IO.Ports" Version="5.0.1" />
+    <PackageReference Include="Vanara.PInvoke.Gdi32" Version="3.3.9" />
+    <PackageReference Include="Vanara.PInvoke.User32.Gdi" Version="2.3.10" />
   </ItemGroup>
 
   <ItemGroup>

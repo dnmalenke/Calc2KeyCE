@@ -1,4 +1,4 @@
-﻿namespace CalcKeyboard
+﻿namespace Calc2KeyCE
 {
     partial class Calc2KeyCE
     {

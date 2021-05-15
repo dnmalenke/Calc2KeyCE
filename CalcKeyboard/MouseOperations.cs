@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CalcKeyboard
+namespace Calc2KeyCE
 {
     using System;
     using System.Runtime.InteropServices;

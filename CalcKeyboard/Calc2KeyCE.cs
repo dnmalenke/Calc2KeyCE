@@ -96,7 +96,7 @@ namespace Calc2KeyCE
                 result.Dispose();
                 shrunkImage.Dispose();
 
-                if (!_sendThread.IsAlive)
+                if (!_sendThread.IsAlive && _connected)
                 {
                     _sendThread.Start();
                 }
@@ -164,28 +164,48 @@ namespace Calc2KeyCE
                 {
                     _connected = true;
                     ConnectBtn.Text = "Disconnect";
-                    DeviceSelector.Enabled = false;
                     button3.Visible = true;
                     SaveBtn.Visible = true;
                     button1.Visible = true;
                     button2.Visible = true;
+                    checkBox1.Visible = false;
 
-                    _screenThread = new Thread(new ThreadStart(GetScreenArray));
-                    _sendThread = new Thread(new ThreadStart(SendScreenToCalc));
+                    if (checkBox1.Checked)
+                    {
+                        _screenThread = new Thread(new ThreadStart(GetScreenArray));
+                        _sendThread = new Thread(new ThreadStart(SendScreenToCalc));
 
-                    _screenThread.Start();
+                        _screenThread.Start();
+                    }
+                    else
+                    {
+                        SendConnectDisconnectMessage();
+                    }
                 }
             }
             else
             {
                 _connected = false;
+
+                if (_sendThread != null)
+                {
+                    _sendThread.Join();
+                }
+
+                SendConnectDisconnectMessage();
+                _calcWriter.Dispose();
+                _calcWriter = null;
+                _calcReader.Dispose();
+                _calcReader = null;
+                UsbDevice.Exit();
+                _calculator = null;
                 ConnectBtn.Text = "Connect";
-                DeviceSelector.Enabled = true;
                 button3.Visible = false;
                 KeyBindingBox.Visible = false;
                 SaveBtn.Visible = false;
                 button1.Visible = false;
                 button2.Visible = false;
+                checkBox1.Visible = true;
             }
 
             UpdateBoundKeyList();
@@ -383,10 +403,34 @@ namespace Calc2KeyCE
             _binding = true;
         }
 
+        private void SendConnectDisconnectMessage()
+        {
+            if (_calcWriter != null)
+            {
+                _calcWriter.Write(new byte[] { 0x00, 0x00, 0x00 }, 1000, out _);
+            }
+        }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // send close message to calc
-            UsbDevice.Exit();
+            try
+            {
+                SendConnectDisconnectMessage();
+                _connected = false;
+
+                if (_sendThread != null)
+                {
+                    _sendThread.Join();
+                }
+                _calcWriter.Dispose();
+                _calcWriter = null;
+                _calcReader.Dispose();
+                _calcReader = null;
+                _calculator = null;
+
+                UsbDevice.Exit();
+            }
+            catch { }
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)

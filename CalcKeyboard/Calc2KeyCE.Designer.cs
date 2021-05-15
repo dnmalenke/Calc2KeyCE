@@ -28,11 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.DeviceSelector = new System.Windows.Forms.ComboBox();
-            this.RefreshBtn = new System.Windows.Forms.Button();
             this.ConnectBtn = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.KeyBindingBox = new System.Windows.Forms.GroupBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.CancelBtn = new System.Windows.Forms.Button();
@@ -54,32 +51,14 @@
             this.button2 = new System.Windows.Forms.Button();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.groupBox1.SuspendLayout();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.KeyBindingBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
-            // DeviceSelector
-            // 
-            this.DeviceSelector.FormattingEnabled = true;
-            this.DeviceSelector.Location = new System.Drawing.Point(6, 22);
-            this.DeviceSelector.Name = "DeviceSelector";
-            this.DeviceSelector.Size = new System.Drawing.Size(121, 23);
-            this.DeviceSelector.TabIndex = 0;
-            // 
-            // RefreshBtn
-            // 
-            this.RefreshBtn.Location = new System.Drawing.Point(133, 22);
-            this.RefreshBtn.Name = "RefreshBtn";
-            this.RefreshBtn.Size = new System.Drawing.Size(75, 23);
-            this.RefreshBtn.TabIndex = 1;
-            this.RefreshBtn.Text = "Refresh";
-            this.RefreshBtn.UseVisualStyleBackColor = true;
-            this.RefreshBtn.Click += new System.EventHandler(this.RefreshBtnClick);
-            // 
             // ConnectBtn
             // 
-            this.ConnectBtn.Location = new System.Drawing.Point(214, 22);
+            this.ConnectBtn.Location = new System.Drawing.Point(18, 12);
             this.ConnectBtn.Name = "ConnectBtn";
             this.ConnectBtn.Size = new System.Drawing.Size(75, 23);
             this.ConnectBtn.TabIndex = 2;
@@ -97,18 +76,6 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Visible = false;
             this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.DeviceSelector);
-            this.groupBox1.Controls.Add(this.RefreshBtn);
-            this.groupBox1.Controls.Add(this.ConnectBtn);
-            this.groupBox1.Location = new System.Drawing.Point(12, 12);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(298, 55);
-            this.groupBox1.TabIndex = 6;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Select a device";
             // 
             // KeyBindingBox
             // 
@@ -334,17 +301,30 @@
             this.openFileDialog1.Filter = "Calculator Key Presets|*.json";
             this.openFileDialog1.Title = "Open Calculator Key Preset";
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Checked = true;
+            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.Location = new System.Drawing.Point(99, 15);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(87, 19);
+            this.checkBox1.TabIndex = 12;
+            this.checkBox1.Text = "Cast Screen";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
             // Calc2KeyCE
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(615, 330);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
+            this.Controls.Add(this.ConnectBtn);
             this.Controls.Add(this.SaveBtn);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.KeyBindingBox);
-            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button3);
             this.Name = "Calc2KeyCE";
             this.Text = "Calc2KeyCE";
@@ -352,21 +332,17 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.Form1_PreviewKeyDown);
-            this.groupBox1.ResumeLayout(false);
             this.KeyBindingBox.ResumeLayout(false);
             this.KeyBindingBox.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.ComboBox DeviceSelector;
-        private System.Windows.Forms.Button RefreshBtn;
         private System.Windows.Forms.Button ConnectBtn;
         private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox KeyBindingBox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox CalcKeyBindBox;
@@ -388,6 +364,7 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 

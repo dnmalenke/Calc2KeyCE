@@ -23,6 +23,6 @@ Feel free to load example presets located in this repo.
 
 
 Credits:
-        Thanks to the makers of the CE C Toolchain and those that continually update the usbdrvce library!
-        Inspired by this forum post: https://www.cemetech.net/forum/viewtopic.php?t=16647
-        zx7: (c) 2012-2013 by Einar Saukas.
+    + bThanks to the makers of the CE C Toolchain and those that continually update the usbdrvce library!
+    + Inspired by this forum post: https://www.cemetech.net/forum/viewtopic.php?t=16647
+    + zx7: (c) 2012-2013 by Einar Saukas.

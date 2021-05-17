@@ -32,29 +32,117 @@ uint32_t screenSize = 4;
 uint32_t prog = 0;
 bool connected = false;
 
+// static const wchar_t string1[30] = {'T', 'e', 'x', 'a', 's', ' ', 'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's', ' ', 'I', 'n', 'c', 'o', 'r', 'p', 'o', 'r', 'a', 't', 'e', 'd'};
+
+// static const usb_string_descriptor_t sd1 = {
+// 	.bLength = sizeof(sd1) + sizeof(wchar_t) * 30,
+// 	.bDescriptorType = USB_STRING_DESCRIPTOR,
+// 	.bString = {
+// 		[30] = &string1},
+// };
+
+// // static const usb_string_descriptor_t sd2 = {
+// // 	.bLength = sizeof(sd2) + sizeof(wchar_t) * 13,
+// // 	.bDescriptorType = USB_STRING_DESCRIPTOR,
+// // 	.bString = {
+// // 		[13] = L"TI-84 Plus CE"
+// // 	},
+// // };
+
+// const static usb_string_descriptor_t* strings[] = {
+// 	&sd1,
+// 	//&sd2
+// };
+
+static const usb_string_descriptor_t langids = {
+	.bLength = sizeof(langids) + sizeof(wchar_t) * 1,
+	.bDescriptorType = USB_STRING_DESCRIPTOR,
+	.bString = {
+		[0] = 0x0409u,
+	},
+};
+
+static const struct configuration1
+{
+	usb_configuration_descriptor_t configuration;
+	struct configuration1_interface0
+	{
+		usb_interface_descriptor_t interface;
+		usb_endpoint_descriptor_t endpoints[2];
+	} interface0;
+} configuration1 = {
+	.configuration = {
+		.bLength = sizeof(configuration1.configuration),
+		.bDescriptorType = USB_CONFIGURATION_DESCRIPTOR,
+		.wTotalLength = sizeof(configuration1),
+		.bNumInterfaces = 1u,
+		.bConfigurationValue = 1u,
+		.iConfiguration = 0,
+		.bmAttributes = USB_CONFIGURATION_ATTRIBUTES,
+		.bMaxPower = 500u / 2u,
+	},
+	.interface0 = {
+		.interface = {
+			.bLength = sizeof(configuration1.interface0.interface),
+			.bDescriptorType = USB_INTERFACE_DESCRIPTOR,
+			.bInterfaceNumber = 0u,
+			.bAlternateSetting = 0u,
+			.bNumEndpoints = 2,
+			.bInterfaceClass = USB_VENDOR_SPECIFIC_CLASS,
+			.bInterfaceSubClass = 1u,
+			.bInterfaceProtocol = 1u,
+			.iInterface = 0x00u,
+		},
+		.endpoints = {[0] = {
+						  .bLength = sizeof(configuration1.interface0.endpoints[0]),
+						  .bDescriptorType = USB_ENDPOINT_DESCRIPTOR,
+						  .bEndpointAddress = 0x81u,
+						  .bmAttributes = USB_BULK_TRANSFER,
+						  .wMaxPacketSize = 0x0040u,
+						  .bInterval = 0u,
+					  },
+					  [1] = {
+						  .bLength = sizeof(configuration1.interface0.endpoints[1]),
+						  .bDescriptorType = USB_ENDPOINT_DESCRIPTOR,
+						  .bEndpointAddress = 0x02u,
+						  .bmAttributes = USB_BULK_TRANSFER,
+						  .wMaxPacketSize = 0x0040u,
+						  .bInterval = 0u,
+					  }},
+	},
+};
+static const usb_configuration_descriptor_t* configurations[] = {
+	[0] = &configuration1.configuration};
+
+static usb_device_descriptor_t device = {
+	.bLength = sizeof(device),
+	.bDescriptorType = USB_DEVICE_DESCRIPTOR,
+	.bcdUSB = 0x200u,
+	.bDeviceClass = USB_INTERFACE_SPECIFIC_CLASS,
+	.bDeviceSubClass = 0u,
+	.bDeviceProtocol = 0u,
+	.bMaxPacketSize0 = 0x40u,
+	.idVendor = 0x0451u,
+	.idProduct = 0xE009u,
+	.bcdDevice = 0x240u,
+	.iManufacturer = 0x0451u,
+	.iProduct = 0xE009u,
+	.iSerialNumber = 0x0220u,
+	.bNumConfigurations = 1,
+};
+static usb_standard_descriptors_t descriptors = {
+	.device = &device,
+	.configurations = configurations,
+	.langids = &langids,
+	.numStrings = 2,
+	.strings = NULL,
+};
+
 int main(void)
 {
 	usb_error_t error;
 	memset(&global, 0, sizeof(global_t));
 	memset((void*)lcd_Ram, 0, LCD_SIZE);
-
-	usb_device_descriptor_t dev = { 0x12, 0x01, 0x200, 0x00, 0x00, 0x00, 0x40, 0x0451, 0xE009, 0x0220, 0x01, 0x02, 0x00, 0x03 };
-
-	usb_configuration_descriptor_t* conf0 = malloc(0x0023);
-	usb_configuration_descriptor_t* conf1 = malloc(0x0023);
-	usb_configuration_descriptor_t* conf2 = malloc(0x0023);
-
-	const usb_configuration_descriptor_t* confs[] = {
-		conf0, conf1, conf2 };
-
-	memcpy((void*)confs[0], (uint8_t[]) { 0x09, 0x02, 0x23, 0x00, 0x01, 0x01, 0x00, 0x80, 0xFA, 0x09, 0x04, 0x00, 0x00, 0x02, 0xFF, 0x01, 0x00, 0x00, 0x07, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x07, 0x05, 0x02, 0x02, 0x40, 0x00, 0x00, 0x03, 0x09, 0x03 }, 35);
-	memcpy((void*)confs[1], (uint8_t[]) { 0x09, 0x02, 0x23, 0x00, 0x01, 0x02, 0x00, 0xC0, 0x00, 0x09, 0x04, 0x00, 0x00, 0x02, 0xFF, 0x01, 0x00, 0x00, 0x07, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x07, 0x05, 0x02, 0x02, 0x40, 0x00, 0x00, 0x03, 0x09, 0x03 }, 35);
-	memcpy((void*)confs[2], (uint8_t[]) { 0x09, 0x02, 0x23, 0x00, 0x01, 0x03, 0x00, 0x80, 0x32, 0x09, 0x04, 0x00, 0x00, 0x02, 0xFF, 0x01, 0x00, 0x00, 0x07, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x07, 0x05, 0x02, 0x02, 0x40, 0x00, 0x00, 0x03, 0x09, 0x03 }, 35);
-
-	usb_string_descriptor_t* langids = malloc(sizeof(usb_string_descriptor_t) + sizeof(uint16_t));
-	memcpy((void*)langids, (uint8_t[]) { 0x04, 0x03, 0x09, 0x04 }, 4);
-
-	uint8_t numStrings = 238;
 
 	usb_string_descriptor_t* string1 = malloc(0x3E);
 	string1->bLength = 0x3E;
@@ -64,27 +152,23 @@ int main(void)
 	string2->bLength = 0x1C;
 	string2->bDescriptorType = 0x03;
 
-	usb_string_descriptor_t* osStr = malloc(0x12);
-
 	const usb_string_descriptor_t* strings[238];
 	strings[0] = string1;
 	strings[1] = string2;
-	strings[237] = osStr;
 
-	memcpy((void*)strings[0]->bString, (wchar_t[]) { 'T', 'e', 'x', 'a', 's', ' ', 'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's', ' ', 'I', 'n', 'c', 'o', 'r', 'p', 'o', 'r', 'a', 't', 'e', 'd' }, 60);
-	memcpy((void*)strings[1]->bString, (wchar_t[]) { 'T', 'I', '-', '8', '4', ' ', 'P', 'l', 'u', 's', ' ', 'C', 'E' }, 26);
-	memcpy((void*)strings[237], (uint8_t[]) { 0x12, 0x03, 0x4D, 0x00, 0x53, 0x00, 0x46, 0x00, 0x54, 0x00, 0x31, 0x00, 0x30, 0x00, 0x30, 0x00, 0x01, 0x01 }, 0x12);
+	memcpy((void*)strings[0]->bString, (wchar_t[]){'T', 'e', 'x', 'a', 's', ' ', 'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's', ' ', 'I', 'n', 'c', 'o', 'r', 'p', 'o', 'r', 'a', 't', 'e', 'd'}, 60);
+	memcpy((void*)strings[1]->bString, (wchar_t[]){'T', 'I', '-', '8', '4', ' ', 'P', 'l', 'u', 's', ' ', 'C', 'E'}, 26);
 
-	usb_standard_descriptors_t desc = { &dev, confs, langids, numStrings, strings };
+	descriptors.strings = strings;
 
-	if ((error = usb_Init(handleUsbEvent, &global, &desc, USB_DEFAULT_INIT_FLAGS)) == USB_SUCCESS)
+	if ((error = usb_Init(handleUsbEvent, &global, &descriptors, USB_DEFAULT_INIT_FLAGS)) == USB_SUCCESS)
 	{
 		while ((error = usb_WaitForInterrupt()) == USB_SUCCESS)
 		{
 			if (connected)
 			{
 				kb_Scan();
-				uint8_t keys[] = { kb_Data[1], kb_Data[2], kb_Data[3], kb_Data[4], kb_Data[5], kb_Data[6], kb_Data[7] };
+				uint8_t keys[] = {kb_Data[1], kb_Data[2], kb_Data[3], kb_Data[4], kb_Data[5], kb_Data[6], kb_Data[7]};
 				usb_BulkTransfer(global.in, &keys, 7, 0, NULL);
 			}
 			else if (os_GetCSC())
@@ -95,14 +179,6 @@ int main(void)
 	}
 
 	usb_Cleanup();
-
-	free(langids);
-	free(string1);
-	free(string2);
-	free(osStr);
-	free(conf0);
-	free(conf1);
-	free(conf2);
 
 	return 0;
 }

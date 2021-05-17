@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Calc2KeyCE
+namespace Calc2KeyCE.ScreenMirroring
 {
     public static class ImageExtensions
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Calc2KeyCE
+namespace Calc2KeyCE.KeyHandling
 {
     public class BoundKey
     {

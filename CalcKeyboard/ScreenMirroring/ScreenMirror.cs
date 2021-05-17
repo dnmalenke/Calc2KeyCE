@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -11,16 +12,19 @@ using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using Vanara.PInvoke;
 
-namespace Calc2KeyCE
+namespace Calc2KeyCE.ScreenMirroring
 {
     public class ScreenMirror
     {
         private bool _connected = false;
         private UsbEndpointWriter _calcWriter;
-        private (byte[] compressedImage, byte[] uncompressedImage) _prevImages; // make this thread safe so we don't get random null crashes
         private Thread _sendThread;
         private Thread _screenThread;
 
+        private ConcurrentDictionary<int, byte> _compressedImage = new();
+        private ConcurrentDictionary<int, byte> _uncompressedImage = new();
+
+        public EventHandler<ErrorCode> OnUsbError { get; set; }
 
         public ScreenMirror(ref UsbEndpointWriter writer)
         {
@@ -85,17 +89,30 @@ namespace Calc2KeyCE
                     gr.DrawImage(shrunkImage, new Rectangle(0, 0, clone.Width, clone.Height));
                 }
 
-                _prevImages.uncompressedImage = clone.ToByteArray(ImageFormat.Bmp);
-
-                long d = 0;
-                long opZ = 0;
-
-                Optimal[] opp = Optimize.optimize(_prevImages.uncompressedImage, (uint)_prevImages.uncompressedImage.Length, 66);
-                _prevImages.compressedImage = Compress.compress(opp, _prevImages.uncompressedImage, (uint)_prevImages.uncompressedImage.Length, 66, ref d, ref opZ);
+                ConvertByteArrayToDict(clone.ToByteArray(ImageFormat.Bmp), ref _uncompressedImage);
 
                 clone.Dispose();
                 result.Dispose();
                 shrunkImage.Dispose();
+
+                long d = 0;
+                long opZ = 0;
+
+                // for some reason when the window maximizes the optimize funtion takes a LONG time to run. This cancels it in that situation.
+                CancellationTokenSource ctSource = new();
+                ctSource.CancelAfter(5000);
+
+                Optimal[] op = Optimize.optimize(_uncompressedImage.Values.ToArray(), (uint)_uncompressedImage.Count, 66, ctSource.Token);
+
+                if (ctSource.IsCancellationRequested)
+                {
+                    ctSource.Dispose();
+                    continue;
+                }
+
+                ConvertByteArrayToDict(Compress.compress(op, _uncompressedImage.Values.ToArray(), (uint)_uncompressedImage.Count, 66, ref d, ref opZ), ref _compressedImage);
+
+                ctSource.Dispose();
 
                 if (!_sendThread.IsAlive && _connected)
                 {
@@ -109,24 +126,42 @@ namespace Calc2KeyCE
             ErrorCode c;
             while (_connected)
             {
-                if (_prevImages.compressedImage != null)
+                byte[] compImage = _compressedImage.Values.ToArray();
+
+                if (_compressedImage.Count >= 0)
                 {
-                    if (_prevImages.compressedImage.Length >= 51200)
+                    if (compImage.Length >= 51200)
                     {
                         _calcWriter.Write(153600, 1000, out _);
-                        c = _calcWriter.Write(_prevImages.uncompressedImage, 66, 153600, 10000, out _);
+                        c = _calcWriter.Write(_uncompressedImage.Values.ToArray(), 66, 153600, 10000, out _);
                     }
                     else
                     {
-                        _calcWriter.Write(BitConverter.GetBytes(_prevImages.compressedImage.Length).ToArray(), 1000, out _);
-                        c = _calcWriter.Write(_prevImages.compressedImage, 0, _prevImages.compressedImage.Length, 1000, out _);
+                        _calcWriter.Write(BitConverter.GetBytes(compImage.Length).ToArray(), 1000, out _);
+                        c = _calcWriter.Write(compImage, 0, compImage.Length, 1000, out _);
                     }
 
                     if (c != ErrorCode.Success)
                     {
                         _connected = false;
-                        Console.WriteLine(c);
+                        OnUsbError.Invoke(this, c);
                     }
+                }
+            }
+        }
+
+        private void ConvertByteArrayToDict(byte[] array, ref ConcurrentDictionary<int, byte> dictionary)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                dictionary.AddOrUpdate(i, array[i], (i, b) => { return array[i]; });
+            }
+
+            if (array.Length < dictionary.Count)
+            {
+                for (int i = array.Length; i <= dictionary.Keys.Max(); i++)
+                {
+                    dictionary.Remove(i, out _);
                 }
             }
         }

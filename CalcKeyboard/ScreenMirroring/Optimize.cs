@@ -25,7 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Calc2KeyCE
+using System.Threading;
+
+namespace Calc2KeyCE.ScreenMirroring
 {
     public struct Optimal
     {
@@ -57,7 +59,7 @@ namespace Calc2KeyCE
             return 1 + (offset > 128 ? 12 : 8) + elias_gamma_bits((int)(len - 1));
         }
 
-        public unsafe static Optimal[] optimize(byte[] input_data, uint input_size, ulong skip)
+        public unsafe static Optimal[] optimize(byte[] input_data, uint input_size, ulong skip, CancellationToken cancellationToken)
         {
             uint[] min = new uint[MAX_OFFSET + 1];
             uint[] max = new uint[MAX_OFFSET + 1];
@@ -86,6 +88,11 @@ namespace Calc2KeyCE
             /* process remaining bytes */
             for (; i < input_size; i++)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 optimal[i].bits = optimal[i - 1].bits + 9;
                 match_index = input_data[i - 1] << 8 | input_data[i];
                 best_len = 1;

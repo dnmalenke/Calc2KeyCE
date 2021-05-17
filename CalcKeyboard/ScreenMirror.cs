@@ -17,7 +17,7 @@ namespace Calc2KeyCE
     {
         private bool _connected = false;
         private UsbEndpointWriter _calcWriter;
-        private (byte[] compressedImage, byte[] uncompressedImage) _prevImages;
+        private (byte[] compressedImage, byte[] uncompressedImage) _prevImages; // make this thread safe so we don't get random null crashes
         private Thread _sendThread;
         private Thread _screenThread;
 

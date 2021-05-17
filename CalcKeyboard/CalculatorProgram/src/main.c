@@ -152,7 +152,7 @@ int main(void)
 	string2->bLength = 0x1C;
 	string2->bDescriptorType = 0x03;
 
-	const usb_string_descriptor_t* strings[238];
+	const usb_string_descriptor_t* strings[2]; // do this better
 	strings[0] = string1;
 	strings[1] = string2;
 
@@ -197,7 +197,7 @@ static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t 
 			connected = true;
 			memcpy(&screenSize, data, sizeof(int));
 		}
-		else if (transferred == 3)
+		else if (transferred == 3) // be smarter with this
 		{
 			connected = !connected;
 			if (!connected)

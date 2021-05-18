@@ -24,10 +24,11 @@
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
     <PackageReference Include="Vanara.PInvoke.Gdi32" Version="3.3.9" />
     <PackageReference Include="Vanara.PInvoke.User32" Version="3.3.9" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Example Presets\" />
+    <ProjectReference Include="..\Calc2KeyCE.Core\Calc2KeyCE.Core.csproj" />
   </ItemGroup>
 
 </Project>

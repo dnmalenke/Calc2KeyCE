@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using WindowsInput;
 
-namespace Calc2KeyCE
+namespace Calc2KeyCE.Core.KeyHandling
 {
     public static class KeyHandler
     {
@@ -16,7 +12,7 @@ namespace Calc2KeyCE
 
         private static List<string> _currentMouseActions = new();
 
-        private static InputSimulator _inputSimulator = new();
+        private static IInputSimulator _inputSimulator = OperatingSystem.IsWindows() ? new WindowsInputSimulator() : throw new NotImplementedException();
 
         public static void HandleBoundKeys(List<BoundKey> boundKeys, Dictionary<string, int> currentKeys, List<string> previousKeys, List<string> addedKeys)
         {
@@ -26,12 +22,12 @@ namespace Calc2KeyCE
 
                 if (boundKey.KeyboardAction != null)
                 {
-                    Keyboard.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), true, Keyboard.InputType.Keyboard);
+                    _inputSimulator.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), true, Keyboard.InputType.Keyboard);
                 }
 
                 if (boundKey.MouseButtonAction != null)
                 {
-                    MouseOperations.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, true));
+                    _inputSimulator.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, true));
 
                     _currentMouseActions.Remove(boundKey.MouseButtonAction.ToString());
                 }
@@ -68,13 +64,13 @@ namespace Calc2KeyCE
                 {
                     if (currentKeys[boundKey.CalcKey.ToString()] == 1 || currentKeys[boundKey.CalcKey.ToString()] > 50)
                     {
-                        Keyboard.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), false, Keyboard.InputType.Keyboard);
+                        _inputSimulator.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), false, Keyboard.InputType.Keyboard);
                     }
                 }
 
                 if (boundKey.MouseButtonAction != null && !_currentMouseActions.Contains(boundKey.MouseButtonAction.ToString()))
                 {
-                    MouseOperations.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, false));
+                    _inputSimulator.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, false));
 
                     _currentMouseActions.Add(boundKey.MouseButtonAction.ToString());
                 }
@@ -116,7 +112,7 @@ namespace Calc2KeyCE
             if (Math.Round(_mouseMoveX) != 0 || Math.Round(_mouseMoveY) != 0)
             {
                 var mousePosition = MouseOperations.GetCursorPosition();
-                _inputSimulator.Mouse.MoveMouseBy((int)Math.Round(_mouseMoveX), (int)Math.Round(_mouseMoveY));
+                _inputSimulator.MoveMouseBy((int)Math.Round(_mouseMoveX), (int)Math.Round(_mouseMoveY));
             }
         }
 

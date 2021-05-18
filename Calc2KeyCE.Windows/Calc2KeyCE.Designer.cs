@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.ConnectBtn = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.BindBtn = new System.Windows.Forms.Button();
             this.KeyBindingBox = new System.Windows.Forms.GroupBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.CancelBtn = new System.Windows.Forms.Button();
@@ -43,15 +43,15 @@
             this.label1 = new System.Windows.Forms.Label();
             this.CalcKeyBindBox = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.button5 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
+            this.ClearBindBtn = new System.Windows.Forms.Button();
+            this.RemoveBindBtn = new System.Windows.Forms.Button();
             this.BoundKeyList = new System.Windows.Forms.ListBox();
             this.SaveBtn = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.LoadOverButton = new System.Windows.Forms.Button();
+            this.LoadAddBtn = new System.Windows.Forms.Button();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.CastScreenCheckBox = new System.Windows.Forms.CheckBox();
             this.KeyBindingBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -64,18 +64,18 @@
             this.ConnectBtn.TabIndex = 2;
             this.ConnectBtn.Text = "Connect";
             this.ConnectBtn.UseVisualStyleBackColor = true;
-            this.ConnectBtn.Click += new System.EventHandler(this.ConnectBtnClick);
+            this.ConnectBtn.Click += new System.EventHandler(this.ConnectBtn_Click);
             // 
-            // button3
+            // BindBtn
             // 
-            this.button3.Location = new System.Drawing.Point(18, 73);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(75, 23);
-            this.button3.TabIndex = 4;
-            this.button3.Text = "Bind";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Visible = false;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.BindBtn.Location = new System.Drawing.Point(18, 73);
+            this.BindBtn.Name = "BindBtn";
+            this.BindBtn.Size = new System.Drawing.Size(75, 23);
+            this.BindBtn.TabIndex = 4;
+            this.BindBtn.Text = "Bind";
+            this.BindBtn.UseVisualStyleBackColor = true;
+            this.BindBtn.Visible = false;
+            this.BindBtn.Click += new System.EventHandler(this.BindBtn_Click);
             // 
             // KeyBindingBox
             // 
@@ -215,8 +215,8 @@
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.button5);
-            this.groupBox2.Controls.Add(this.button4);
+            this.groupBox2.Controls.Add(this.ClearBindBtn);
+            this.groupBox2.Controls.Add(this.RemoveBindBtn);
             this.groupBox2.Controls.Add(this.BoundKeyList);
             this.groupBox2.Location = new System.Drawing.Point(211, 102);
             this.groupBox2.Name = "groupBox2";
@@ -225,25 +225,25 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Currently Bound Keys";
             // 
-            // button5
+            // ClearBindBtn
             // 
-            this.button5.Location = new System.Drawing.Point(320, 52);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(63, 23);
-            this.button5.TabIndex = 2;
-            this.button5.Text = "Clear";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
+            this.ClearBindBtn.Location = new System.Drawing.Point(320, 52);
+            this.ClearBindBtn.Name = "ClearBindBtn";
+            this.ClearBindBtn.Size = new System.Drawing.Size(63, 23);
+            this.ClearBindBtn.TabIndex = 2;
+            this.ClearBindBtn.Text = "Clear";
+            this.ClearBindBtn.UseVisualStyleBackColor = true;
+            this.ClearBindBtn.Click += new System.EventHandler(this.ClearBindBtn_Click);
             // 
-            // button4
+            // RemoveBindBtn
             // 
-            this.button4.Location = new System.Drawing.Point(320, 22);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(63, 23);
-            this.button4.TabIndex = 1;
-            this.button4.Text = "Remove";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.RemoveBindBtn.Location = new System.Drawing.Point(320, 22);
+            this.RemoveBindBtn.Name = "RemoveBindBtn";
+            this.RemoveBindBtn.Size = new System.Drawing.Size(63, 23);
+            this.RemoveBindBtn.TabIndex = 1;
+            this.RemoveBindBtn.Text = "Remove";
+            this.RemoveBindBtn.UseVisualStyleBackColor = true;
+            this.RemoveBindBtn.Click += new System.EventHandler(this.RemoveBindBtn_Click);
             // 
             // BoundKeyList
             // 
@@ -265,27 +265,27 @@
             this.SaveBtn.Visible = false;
             this.SaveBtn.Click += new System.EventHandler(this.SaveBtn_Click);
             // 
-            // button1
+            // LoadOverButton
             // 
-            this.button1.Location = new System.Drawing.Point(316, 41);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(284, 23);
-            this.button1.TabIndex = 10;
-            this.button1.Text = "Load Preset and Overwrite Currently Bound Keys";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Visible = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.LoadOverButton.Location = new System.Drawing.Point(316, 41);
+            this.LoadOverButton.Name = "LoadOverButton";
+            this.LoadOverButton.Size = new System.Drawing.Size(284, 23);
+            this.LoadOverButton.TabIndex = 10;
+            this.LoadOverButton.Text = "Load Preset and Overwrite Currently Bound Keys";
+            this.LoadOverButton.UseVisualStyleBackColor = true;
+            this.LoadOverButton.Visible = false;
+            this.LoadOverButton.Click += new System.EventHandler(this.LoadOverButton_Click);
             // 
-            // button2
+            // LoadAddBtn
             // 
-            this.button2.Location = new System.Drawing.Point(316, 70);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(284, 23);
-            this.button2.TabIndex = 11;
-            this.button2.Text = "Load Preset and Add to Currently Bound Keys";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Visible = false;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.LoadAddBtn.Location = new System.Drawing.Point(316, 70);
+            this.LoadAddBtn.Name = "LoadAddBtn";
+            this.LoadAddBtn.Size = new System.Drawing.Size(284, 23);
+            this.LoadAddBtn.TabIndex = 11;
+            this.LoadAddBtn.Text = "Load Preset and Add to Currently Bound Keys";
+            this.LoadAddBtn.UseVisualStyleBackColor = true;
+            this.LoadAddBtn.Visible = false;
+            this.LoadAddBtn.Click += new System.EventHandler(this.LoadAddBtn_Click);
             // 
             // saveFileDialog1
             // 
@@ -301,31 +301,31 @@
             this.openFileDialog1.Filter = "Calculator Key Presets|*.json";
             this.openFileDialog1.Title = "Open Calculator Key Preset";
             // 
-            // checkBox1
+            // CastScreenCheckBox
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Checked = true;
-            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox1.Location = new System.Drawing.Point(99, 15);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(87, 19);
-            this.checkBox1.TabIndex = 12;
-            this.checkBox1.Text = "Cast Screen";
-            this.checkBox1.UseVisualStyleBackColor = true;
+            this.CastScreenCheckBox.AutoSize = true;
+            this.CastScreenCheckBox.Checked = true;
+            this.CastScreenCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CastScreenCheckBox.Location = new System.Drawing.Point(99, 15);
+            this.CastScreenCheckBox.Name = "CastScreenCheckBox";
+            this.CastScreenCheckBox.Size = new System.Drawing.Size(87, 19);
+            this.CastScreenCheckBox.TabIndex = 12;
+            this.CastScreenCheckBox.Text = "Cast Screen";
+            this.CastScreenCheckBox.UseVisualStyleBackColor = true;
             // 
             // Calc2KeyCE
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(615, 330);
-            this.Controls.Add(this.checkBox1);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.CastScreenCheckBox);
+            this.Controls.Add(this.LoadAddBtn);
+            this.Controls.Add(this.LoadOverButton);
             this.Controls.Add(this.ConnectBtn);
             this.Controls.Add(this.SaveBtn);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.KeyBindingBox);
-            this.Controls.Add(this.button3);
+            this.Controls.Add(this.BindBtn);
             this.Name = "Calc2KeyCE";
             this.Text = "Calc2KeyCE";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
@@ -342,7 +342,7 @@
 
         #endregion
         private System.Windows.Forms.Button ConnectBtn;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button BindBtn;
         private System.Windows.Forms.GroupBox KeyBindingBox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox CalcKeyBindBox;
@@ -358,13 +358,13 @@
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.ListBox BoundKeyList;
         private System.Windows.Forms.Button SaveBtn;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button LoadOverButton;
+        private System.Windows.Forms.Button LoadAddBtn;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Button RemoveBindBtn;
+        private System.Windows.Forms.Button ClearBindBtn;
+        private System.Windows.Forms.CheckBox CastScreenCheckBox;
     }
 }
 

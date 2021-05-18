@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Calc2KeyCE.KeyHandling;
 using Calc2KeyCE.ScreenMirroring;
+using Calc2KeyCE.Usb;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using Newtonsoft.Json;
@@ -13,12 +14,10 @@ using Newtonsoft.Json;
 namespace Calc2KeyCE
 {
     public partial class Calc2KeyCE : Form
-    {      
+    {
         private bool _connected = false;
 
-        private UsbDevice _calculator;
-        private UsbEndpointWriter _calcWriter;
-        private UsbEndpointReader _calcReader;
+        private UsbCalculator _calculator = new();
 
         private ScreenMirror _screenMirror;
 
@@ -39,61 +38,39 @@ namespace Calc2KeyCE
         {
             if (!_connected)
             {
-                UsbRegDeviceList allDevices = UsbDevice.AllDevices;
-
-                foreach (UsbRegistry usbRegistry in allDevices)
+                if (!_calculator.Initialize())
                 {
-                    if (usbRegistry.Open(out _calculator))
-                    {
-                        if (_calculator.Info.Descriptor.VendorID == 0x0451 && _calculator.Info.Descriptor.ProductID == -8183)
-                        {
-                            _calcWriter = _calculator.OpenEndpointWriter(WriteEndpointID.Ep02);
-                            _calcReader = _calculator.OpenEndpointReader(ReadEndpointID.Ep01);
-                            _calcReader.DataReceivedEnabled = true;
-                            _calcReader.DataReceived += new EventHandler<EndpointDataEventArgs>(DataReceivedHandler);
-                        }
-                    }
+                    return;
                 }
 
-                if (_calcWriter != null && _calcReader != null)
+                _calculator.DataReceived += new EventHandler<EndpointDataEventArgs>(DataReceivedHandler);
+
+                _connected = true;
+                ConnectBtn.Text = "Disconnect";
+                BindBtn.Visible = true;
+                SaveBtn.Visible = true;
+                LoadOverButton.Visible = true;
+                LoadAddBtn.Visible = true;
+                CastScreenCheckBox.Visible = false;
+
+                if (CastScreenCheckBox.Checked)
                 {
-                    _connected = true;
-                    ConnectBtn.Text = "Disconnect";
-                    BindBtn.Visible = true;
-                    SaveBtn.Visible = true;
-                    LoadOverButton.Visible = true;
-                    LoadAddBtn.Visible = true;
-                    CastScreenCheckBox.Visible = false;
-
-                    if (CastScreenCheckBox.Checked)
-                    {
-                        _screenMirror = new(ref _calcWriter);
-                        _screenMirror.StartMirroring();
-                        _screenMirror.OnUsbError += UsbErrorHandler;
-
-                    }
-                    else
-                    {
-                        SendConnectDisconnectMessage();
-                    }
+                    _screenMirror = new(ref _calculator);
+                    _screenMirror.StartMirroring();
+                    _screenMirror.OnUsbError += UsbErrorHandler;
+                }
+                else
+                {
+                    _calculator.SendConnectDisconnectMessage();
                 }
             }
             else
             {
                 DisconnectUsb();
-
                 DisconnectUI();
             }
 
             UpdateBoundKeyList();
-        }
-        
-        private void SendConnectDisconnectMessage()
-        {
-            if (_calcWriter != null)
-            {
-                _calcWriter.Write(new byte[] { 0x00, 0x00, 0x00 }, 1000, out _);
-            }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -138,21 +115,12 @@ namespace Calc2KeyCE
                     _screenMirror.StopMirroring();
                     _screenMirror = null;
                 }
-                SendConnectDisconnectMessage();
 
-                if (_calcWriter != null)
-                {
-                    _calcWriter.Dispose();
-                    _calcWriter = null;
-                    _calcReader.Dispose();
-                    _calcReader = null;
-                }
+                _calculator.DisconnectUsb();
+               
                 _calculator = null;
-
-                UsbDevice.Exit();
-
             }
             catch { }
-        }       
+        }
     }
 }

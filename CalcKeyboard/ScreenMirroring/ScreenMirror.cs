@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Calc2KeyCE.Usb;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using Vanara.PInvoke;
@@ -21,14 +22,14 @@ namespace Calc2KeyCE.ScreenMirroring
         private Thread _sendThread;
         private Thread _screenThread;
 
-        private ConcurrentDictionary<int, byte> _compressedImage = new();
-        private ConcurrentDictionary<int, byte> _uncompressedImage = new();
+        byte[] _compressedImage;
+        byte[] _uncompressedImage;
 
         public EventHandler<ErrorCode> OnUsbError { get; set; }
 
-        public ScreenMirror(ref UsbEndpointWriter writer)
+        public ScreenMirror(ref UsbCalculator calculator)
         {
-            _calcWriter = writer;
+            _calcWriter = calculator.CalcWriter;
         }
 
         public void StartMirroring()
@@ -89,7 +90,7 @@ namespace Calc2KeyCE.ScreenMirroring
                     gr.DrawImage(shrunkImage, new Rectangle(0, 0, clone.Width, clone.Height));
                 }
 
-                ConvertByteArrayToDict(clone.ToByteArray(ImageFormat.Bmp), ref _uncompressedImage);
+                _uncompressedImage = clone.ToByteArray(ImageFormat.Bmp);
 
                 clone.Dispose();
                 result.Dispose();
@@ -102,7 +103,7 @@ namespace Calc2KeyCE.ScreenMirroring
                 CancellationTokenSource ctSource = new();
                 ctSource.CancelAfter(5000);
 
-                Optimal[] op = Optimize.optimize(_uncompressedImage.Values.ToArray(), (uint)_uncompressedImage.Count, 66, ctSource.Token);
+                Optimal[] op = Optimize.optimize(_uncompressedImage, (uint)_uncompressedImage.Length, 66, ctSource.Token);
 
                 if (ctSource.IsCancellationRequested)
                 {
@@ -110,13 +111,13 @@ namespace Calc2KeyCE.ScreenMirroring
                     continue;
                 }
 
-                ConvertByteArrayToDict(Compress.compress(op, _uncompressedImage.Values.ToArray(), (uint)_uncompressedImage.Count, 66, ref d, ref opZ), ref _compressedImage);
+                _compressedImage = Compress.compress(op, _uncompressedImage, (uint)_uncompressedImage.Length, 66, ref d, ref opZ);
 
                 ctSource.Dispose();
 
                 if (!_sendThread.IsAlive && _connected)
                 {
-                    _sendThread.Start();
+                   _sendThread.Start();
                 }
             }
         }
@@ -126,14 +127,14 @@ namespace Calc2KeyCE.ScreenMirroring
             ErrorCode c;
             while (_connected)
             {
-                byte[] compImage = _compressedImage.Values.ToArray();
-
-                if (_compressedImage.Count >= 0)
+                if (_compressedImage != null)
                 {
+                    byte[] compImage = _compressedImage.ToArray();
+
                     if (compImage.Length >= 51200)
                     {
                         _calcWriter.Write(153600, 1000, out _);
-                        c = _calcWriter.Write(_uncompressedImage.Values.ToArray(), 66, 153600, 10000, out _);
+                        c = _calcWriter.Write(_uncompressedImage, 66, 153600, 10000, out _);
                     }
                     else
                     {
@@ -146,22 +147,6 @@ namespace Calc2KeyCE.ScreenMirroring
                         _connected = false;
                         OnUsbError.Invoke(this, c);
                     }
-                }
-            }
-        }
-
-        private void ConvertByteArrayToDict(byte[] array, ref ConcurrentDictionary<int, byte> dictionary)
-        {
-            for (int i = 0; i < array.Length; i++)
-            {
-                dictionary.AddOrUpdate(i, array[i], (i, b) => { return array[i]; });
-            }
-
-            if (array.Length < dictionary.Count)
-            {
-                for (int i = array.Length; i <= dictionary.Keys.Max(); i++)
-                {
-                    dictionary.Remove(i, out _);
                 }
             }
         }

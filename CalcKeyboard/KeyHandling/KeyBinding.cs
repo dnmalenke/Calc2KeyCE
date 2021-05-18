@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using Calc2KeyCE.KeyHandling;
+using Calc2KeyCE.Core.KeyHandling;
 using LibUsbDotNet.Main;
 using Newtonsoft.Json;
 

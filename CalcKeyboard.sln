@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30406.217
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalcKeyboard", "CalcKeyboard\CalcKeyboard.csproj", "{3380416C-7C2B-4D3F-A641-E854C9A0B1C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calc2KeyCE.Windows", "CalcKeyboard\Calc2KeyCE.Windows.csproj", "{3380416C-7C2B-4D3F-A641-E854C9A0B1C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calc2KeyCE.Core", "Calc2KeyCE.Core\Calc2KeyCE.Core.csproj", "{5229767A-8875-40DB-A0B9-913C49DE7CF0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,18 @@ Global
 		{3380416C-7C2B-4D3F-A641-E854C9A0B1C8}.Release|x64.Build.0 = Release|Any CPU
 		{3380416C-7C2B-4D3F-A641-E854C9A0B1C8}.Release|x86.ActiveCfg = Release|Any CPU
 		{3380416C-7C2B-4D3F-A641-E854C9A0B1C8}.Release|x86.Build.0 = Release|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Debug|x64.Build.0 = Debug|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Debug|x86.Build.0 = Debug|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Release|x64.ActiveCfg = Release|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Release|x64.Build.0 = Release|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Release|x86.ActiveCfg = Release|Any CPU
+		{5229767A-8875-40DB-A0B9-913C49DE7CF0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

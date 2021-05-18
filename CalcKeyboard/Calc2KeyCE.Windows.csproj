@@ -30,4 +30,8 @@
     <Folder Include="Example Presets\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Calc2KeyCE.Core\Calc2KeyCE.Core.csproj" />
+  </ItemGroup>
+
 </Project>

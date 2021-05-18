@@ -27,7 +27,7 @@
 
 using System.Threading;
 
-namespace Calc2KeyCE.ScreenMirroring
+namespace Calc2KeyCE.Core.ScreenMirroring
 {
     public struct Optimal
     {

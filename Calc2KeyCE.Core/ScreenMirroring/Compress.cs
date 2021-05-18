@@ -27,7 +27,7 @@
 
 using System;
 
-namespace Calc2KeyCE.ScreenMirroring
+namespace Calc2KeyCE.Core.ScreenMirroring
 {
     public static class Compress
     {

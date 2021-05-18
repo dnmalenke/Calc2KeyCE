@@ -96,10 +96,9 @@ namespace Calc2KeyCE
             label3.Visible = false;
             HideRadioButtons();
             KeyBindingBox.Visible = false;
-            AddBtn.Visible = false;
         }
 
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        protected override bool ProcessCmdKey(ref Message msg, System.Windows.Forms.Keys keyData)
         {
             object sender = FromHandle(msg.HWnd);
             KeyEventArgs e = new KeyEventArgs(keyData);
@@ -212,11 +211,11 @@ namespace Calc2KeyCE
 
             if (KeyboardKeyBindingBox.Visible)
             {
-                newBinding.KeyboardAction = (Keys)Enum.Parse(typeof(Keys), KeyboardKeyBindingBox.Text, true);
+                newBinding.KeyboardAction = (Core.KeyHandling.Keys)Enum.Parse(typeof(Core.KeyHandling.Keys), KeyboardKeyBindingBox.Text, true);
             }
             else if (label3.Text == "Select a Mouse Button" && !string.IsNullOrEmpty(comboBox1.SelectedItem.ToString()))
             {
-                newBinding.MouseButtonAction = (MouseButtons)Enum.Parse(typeof(MouseButtons), comboBox1.SelectedItem.ToString(), true);
+                newBinding.MouseButtonAction = (Core.KeyHandling.MouseButtons)Enum.Parse(typeof(Core.KeyHandling.MouseButtons), comboBox1.SelectedItem.ToString(), true);
             }
             else
             {

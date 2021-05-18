@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
 
-namespace Calc2KeyCE.Usb
+namespace Calc2KeyCE.Core.Usb
 {
     public class UsbCalculator
     {

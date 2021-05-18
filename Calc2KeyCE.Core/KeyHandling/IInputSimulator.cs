@@ -14,7 +14,6 @@ namespace Calc2KeyCE.Core.KeyHandling
         public void MoveMouseBy(int pixelDeltaX, int pixelDeltaY);
         public MousePoint GetCursorPosition();
         public void MouseEvent(MouseEventFlags value);
-        public void SendKey(DirectXKeyStrokes key, bool KeyUp, InputType inputType)
-
+        public void SendKey(DirectXKeyStrokes key, bool KeyUp, InputType inputType);
     }
 }

@@ -4,9 +4,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using Calc2KeyCE.KeyHandling;
+using Calc2KeyCE.Core.ScreenMirroring;
+using Calc2KeyCE.Core.Usb;
 using Calc2KeyCE.ScreenMirroring;
-using Calc2KeyCE.Usb;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using Newtonsoft.Json;
@@ -38,6 +38,8 @@ namespace Calc2KeyCE
         {
             if (!_connected)
             {
+                _calculator = new();
+
                 if (!_calculator.Initialize())
                 {
                     return;
@@ -55,7 +57,7 @@ namespace Calc2KeyCE
 
                 if (CastScreenCheckBox.Checked)
                 {
-                    _screenMirror = new(ref _calculator);
+                    _screenMirror = new(ref _calculator, () => CaptureMonitor.Capture(Screen.PrimaryScreen));
                     _screenMirror.StartMirroring();
                     _screenMirror.OnUsbError += UsbErrorHandler;
                 }
@@ -116,9 +118,12 @@ namespace Calc2KeyCE
                     _screenMirror = null;
                 }
 
-                _calculator.DisconnectUsb();
-               
-                _calculator = null;
+                if (_calculator != null)
+                {
+                    _calculator.DisconnectUsb();
+
+                    _calculator = null;
+                }
             }
             catch { }
         }

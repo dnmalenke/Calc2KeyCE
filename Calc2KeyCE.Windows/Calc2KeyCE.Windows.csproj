@@ -7,6 +7,8 @@
     <Platforms>AnyCPU</Platforms>
     <AssemblyName>Calc2KeyCE</AssemblyName>
     <RootNamespace>Calc2KeyCE</RootNamespace>
+    <Version>1.1.0</Version>
+    <Authors>David Malenke</Authors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

@@ -19,6 +19,8 @@ If it is your first time, use a program like Zadig https://zadig.akeo.ie/ to ins
 Then run Calc2KeyCE and hit connect.
 Feel free to load example presets located in this repo.
 
+If you run into any issues or have questions, Contact me on Discord: `Darkmasterr#3498`
+
 
 Credits:
 + Thanks to the makers of the CE C Toolchain and those that continually update the usbdrvce library!

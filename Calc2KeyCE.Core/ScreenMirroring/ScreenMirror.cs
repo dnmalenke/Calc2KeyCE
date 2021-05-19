@@ -10,6 +10,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
+using System.Reflection;
 
 namespace Calc2KeyCE.Core.ScreenMirroring
 {
@@ -56,13 +57,13 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 _connected = false;
                 _sendThread.Join();
             }
-        }       
+        }
 
         private unsafe void GetScreenArray()
         {
             while (_connected)
             {
-                _uncompressedImage = _captureFunc.Invoke();          
+                _uncompressedImage = _captureFunc.Invoke();
 
                 long d = 0;
                 long opZ = 0;
@@ -71,21 +72,28 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 CancellationTokenSource ctSource = new();
                 ctSource.CancelAfter(5000);
 
-                Optimal[] op = Optimize.optimize(_uncompressedImage, (uint)_uncompressedImage.Length, 66, ctSource.Token);
+                Optimal[] op = Optimize.optimize(_uncompressedImage, (uint)_uncompressedImage.Length, 0, ctSource.Token);
 
                 if (ctSource.IsCancellationRequested)
                 {
                     ctSource.Dispose();
+                    _compressedImage = Array.Empty<byte>();
+
+                    if (!_sendThread.IsAlive && _connected)
+                    {
+                        _sendThread.Start();
+                    }
+
                     continue;
                 }
 
-                _compressedImage = Compress.compress(op, _uncompressedImage, (uint)_uncompressedImage.Length, 66, ref d, ref opZ);
+                _compressedImage = Compress.compress(op, _uncompressedImage, (uint)_uncompressedImage.Length, 0, ref d, ref opZ);
 
                 ctSource.Dispose();
 
                 if (!_sendThread.IsAlive && _connected)
                 {
-                   _sendThread.Start();
+                    _sendThread.Start();
                 }
             }
         }
@@ -99,10 +107,10 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 {
                     byte[] compImage = _compressedImage.ToArray();
 
-                    if (compImage.Length >= 51200)
+                    if (compImage.Length >= 51200 || compImage.Length == 0)
                     {
                         _calcWriter.Write(153600, 1000, out _);
-                        c = _calcWriter.Write(_uncompressedImage, 66, 153600, 10000, out _);
+                        c = _calcWriter.Write(_uncompressedImage, 0, 153600, 10000, out _);
                     }
                     else
                     {

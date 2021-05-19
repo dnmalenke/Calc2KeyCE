@@ -72,7 +72,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 CancellationTokenSource ctSource = new();
                 ctSource.CancelAfter(5000);
 
-                Optimal[] op = Optimize.optimize(_uncompressedImage, (uint)_uncompressedImage.Length, 0, ctSource.Token);
+                Optimal[] op = Optimize.optimize(_uncompressedImage, (uint)_uncompressedImage.Length, 66, ctSource.Token);
 
                 if (ctSource.IsCancellationRequested)
                 {
@@ -87,7 +87,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                     continue;
                 }
 
-                _compressedImage = Compress.compress(op, _uncompressedImage, (uint)_uncompressedImage.Length, 0, ref d, ref opZ);
+                _compressedImage = Compress.compress(op, _uncompressedImage, (uint)_uncompressedImage.Length, 66, ref d, ref opZ);
 
                 ctSource.Dispose();
 
@@ -110,7 +110,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                     if (compImage.Length >= 51200 || compImage.Length == 0)
                     {
                         _calcWriter.Write(153600, 1000, out _);
-                        c = _calcWriter.Write(_uncompressedImage, 0, 153600, 10000, out _);
+                        c = _calcWriter.Write(_uncompressedImage, 66, 153600, 10000, out _);
                     }
                     else
                     {

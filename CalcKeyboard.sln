@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30406.217
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calc2KeyCE.Core", "Calc2KeyCE.Core\Calc2KeyCE.Core.csproj", "{5229767A-8875-40DB-A0B9-913C49DE7CF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calc2KeyCE.Core", "Calc2KeyCE.Core\Calc2KeyCE.Core.csproj", "{5229767A-8875-40DB-A0B9-913C49DE7CF0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Calc2KeyCE.Calc", "Calc2KeyCE.Calc\Calc2KeyCE.Calc.vcxproj", "{966BCBEA-B667-4C31-9036-C1C25DB52715}"
 EndProject

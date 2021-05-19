@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using LibUsbDotNet;
@@ -8,6 +9,7 @@ using LibUsbDotNet.Main;
 
 namespace Calc2KeyCE.Core.Usb
 {
+    [ComVisible(true)]
     public class UsbCalculator
     {
         private UsbDevice _calculator;

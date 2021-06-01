@@ -93,7 +93,7 @@ static const struct configuration1
 			.bInterfaceProtocol = 1u,
 			.iInterface = 0x00u,
 		},
-		.endpoints = { [0] = {
+		.endpoints = {[0] = {
 						  .bLength = sizeof(configuration1.interface0.endpoints[0]),
 						  .bDescriptorType = USB_ENDPOINT_DESCRIPTOR,
 						  .bEndpointAddress = 0x81u,
@@ -112,7 +112,7 @@ static const struct configuration1
 	},
 };
 static const usb_configuration_descriptor_t* configurations[] = {
-	[0] = &configuration1.configuration };
+	[0] = &configuration1.configuration};
 
 static usb_device_descriptor_t device = {
 	.bLength = sizeof(device),
@@ -130,7 +130,7 @@ static usb_device_descriptor_t device = {
 	.iSerialNumber = 0x0220u,
 	.bNumConfigurations = 1,
 };
-static usb_standard_descriptors_t descriptors = {
+usb_standard_descriptors_t descriptors = {
 	.device = &device,
 	.configurations = configurations,
 	.langids = &langids,
@@ -152,13 +152,22 @@ int main(void)
 	string2->bLength = 0x1C;
 	string2->bDescriptorType = 0x03;
 
-	const usb_string_descriptor_t* strings[2]{
-		string1,string2
-	};
+	// const usb_string_descriptor_t* strings[2];
+	// strings[0] = string1;
+	// strings[1] = string2;
 
-	// do this better
-	memcpy((void*)strings[0]->bString, (wchar_t[]) { 'T', 'e', 'x', 'a', 's', ' ', 'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's', ' ', 'I', 'n', 'c', 'o', 'r', 'p', 'o', 'r', 'a', 't', 'e', 'd' }, 60);
-	memcpy((void*)strings[1]->bString, (wchar_t[]) { 'T', 'I', '-', '8', '4', ' ', 'P', 'l', 'u', 's', ' ', 'C', 'E' }, 26);
+	// // do this better
+	// memcpy((void*)strings[0]->bString, (wchar_t[]){'T', 'e', 'x', 'a', 's', ' ', 'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's', ' ', 'I', 'n', 'c', 'o', 'r', 'p', 'o', 'r', 'a', 't', 'e', 'd'}, 60);
+	// memcpy((void*)strings[1]->bString, (wchar_t[]){'T', 'I', '-', '8', '4', ' ', 'P', 'l', 'u', 's', ' ', 'C', 'E'}, 26);
+
+	const usb_string_descriptor_t* strings[238];
+	strings[0] = string1;
+	strings[1] = string2;
+	//strings[237] = osStr;
+
+	memcpy((void*)strings[0]->bString, (wchar_t[]){'T', 'e', 'x', 'a', 's', ' ', 'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's', ' ', 'I', 'n', 'c', 'o', 'r', 'p', 'o', 'r', 'a', 't', 'e', 'd'}, 60);
+	memcpy((void*)strings[1]->bString, (wchar_t[]){'T', 'I', '-', '8', '4', ' ', 'P', 'l', 'u', 's', ' ', 'C', 'E'}, 26);
+//	memcpy((void*)strings[237], (uint8_t[]){0x12, 0x03, 0x4D, 0x00, 0x53, 0x00, 0x46, 0x00, 0x54, 0x00, 0x31, 0x00, 0x30, 0x00, 0x30, 0x00, 0x01, 0x01}, 0x12);
 
 	descriptors.strings = strings;
 
@@ -169,7 +178,7 @@ int main(void)
 			if (connected)
 			{
 				kb_Scan();
-				uint8_t keys[] = { kb_Data[1], kb_Data[2], kb_Data[3], kb_Data[4], kb_Data[5], kb_Data[6], kb_Data[7] };
+				uint8_t keys[] = {kb_Data[1], kb_Data[2], kb_Data[3], kb_Data[4], kb_Data[5], kb_Data[6], kb_Data[7]};
 				usb_BulkTransfer(global.in, &keys, 7, 0, NULL);
 			}
 			else if (os_GetCSC())
@@ -180,6 +189,9 @@ int main(void)
 	}
 
 	usb_Cleanup();
+
+	free(string1);
+	free(string2);
 
 	return 0;
 }

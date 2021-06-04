@@ -23,7 +23,6 @@
     <PackageReference Include="InputSimulatorCore" Version="1.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
-    <PackageReference Include="pythonnet" Version="3.0.0-preview2021-05-03" />
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
     <PackageReference Include="Vanara.PInvoke.Gdi32" Version="3.3.9" />
     <PackageReference Include="Vanara.PInvoke.User32" Version="3.3.9" />
@@ -34,15 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="PyCalcUsb.py">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="PyCalcUsb.pyc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="python37.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

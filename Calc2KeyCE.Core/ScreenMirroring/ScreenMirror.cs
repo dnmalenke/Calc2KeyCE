@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Calc2KeyCE.Core.Usb;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using System.IO;
-using System.Reflection;
 
 namespace Calc2KeyCE.Core.ScreenMirroring
 {
@@ -33,7 +26,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
         /// </summary>
         /// <param name="calculator"></param>
         /// <param name="captureFunc"> 
-        /// Byte array of the screen in rgb565 format
+        /// Function that returns a 320x240 byte array of the screen in rgb565 format
         /// </param>
         public ScreenMirror(ref UsbCalculator calculator, Func<byte[]> captureFunc)
         {
@@ -110,7 +103,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                     if (compImage.Length >= 51200 || compImage.Length == 0)
                     {
                         _calcWriter.Write(153600, 1000, out _);
-                        c = _calcWriter.Write(_uncompressedImage, 0, 153600, 10000, out _);
+                        c = _calcWriter.Write(_uncompressedImage, 66, 153600, 10000, out _);
                     }
                     else
                     {

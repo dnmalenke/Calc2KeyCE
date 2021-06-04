@@ -33,17 +33,22 @@ namespace Calc2KeyCE
             {
                 _groupTypes = new Dictionary<string, Type>();
 
-                foreach (var member in typeof(CalculatorKeyboard).GetMembers())
+                foreach (dynamic member in typeof(CalculatorKeyboard).GetMembers())
                 {
                     if (member.Name.StartsWith("Group"))
                     {
-                        _groupTypes.Add(member.Name, Type.GetType($"{typeof(CalculatorKeyboard).FullName}+{member.Name}"));
+                        _groupTypes.Add(member.Name, Type.GetType(member.AssemblyQualifiedName));
                     }
                 }
             }
 
             for (int i = 0; i < rawKeyboardData.Length; i++)
             {
+                if(rawKeyboardData[i] == 0)
+                {
+                    continue;
+                }
+
                 Type currentGroup = _groupTypes[$"Group{i + 1}"];
 
                 if (currentGroup != null)

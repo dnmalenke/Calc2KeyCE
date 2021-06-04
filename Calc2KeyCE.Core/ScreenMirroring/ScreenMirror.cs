@@ -57,13 +57,13 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 _connected = false;
                 _sendThread.Join();
             }
-        }       
+        }
 
         private unsafe void GetScreenArray()
         {
             while (_connected)
             {
-                _uncompressedImage = _captureFunc.Invoke();          
+                _uncompressedImage = _captureFunc.Invoke();
 
                 long d = 0;
                 long opZ = 0;
@@ -93,7 +93,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
 
                 if (!_sendThread.IsAlive && _connected)
                 {
-                   _sendThread.Start();
+                    _sendThread.Start();
                 }
             }
         }

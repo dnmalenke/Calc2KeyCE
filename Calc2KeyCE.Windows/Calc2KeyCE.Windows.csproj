@@ -7,7 +7,7 @@
     <Platforms>AnyCPU</Platforms>
     <AssemblyName>Calc2KeyCE</AssemblyName>
     <RootNamespace>Calc2KeyCE</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.3.0</Version>
     <Authors>David Malenke</Authors>
   </PropertyGroup>
 
@@ -27,7 +27,6 @@
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
     <PackageReference Include="Vanara.PInvoke.Gdi32" Version="3.3.9" />
     <PackageReference Include="Vanara.PInvoke.User32" Version="3.3.9" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>

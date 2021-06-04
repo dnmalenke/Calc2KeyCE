@@ -42,6 +42,7 @@ namespace Calc2KeyCE
 
                 if (!_calculator.Initialize())
                 {
+                    MessageBox.Show("Calculator not found.");
                     return;
                 }
 

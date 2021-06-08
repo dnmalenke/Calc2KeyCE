@@ -65,7 +65,10 @@ namespace Calc2KeyCE.Core.Usb
 
         private void DataReceivedHandler(object sender, EndpointDataEventArgs e)
         {
-            DataReceived.Invoke(sender, e);
+            if (DataReceived != null)
+            {
+                DataReceived.Invoke(sender, e);
+            }
         }
 
         private UsbDevice GetCalculator()

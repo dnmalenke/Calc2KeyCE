@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
+using Calc2KeyCE.Core.ScreenMirroring;
+using Calc2KeyCE.Core.Usb;
+using LibUsbDotNet.Main;
 
 namespace Calc2KeyCE.Universal
 {
@@ -8,19 +12,104 @@ namespace Calc2KeyCE.Universal
         // Linux
         // wget https://packages.microsoft.com/config/ubuntu/21.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
         // sudo dpkg -i packages-microsoft-prod.deb
-        // sudo apt-get update
-        // sudo apt-get dotnet-runtime-5.0
+        // sudo apt update
+        // sudo apt dotnet-runtime-5.0
+        // sudo apt install libusb-1.0-0 // set symlink for libusb https://github.com/LibUsbDotNet/LibUsbDotNet
+        // sudo apt install driverctl
+        // 
+        //
+
+        // Mac
+        // http://macappstore.org/libusb/
+        // net 5
+
+        // use serial for backend?
+
+        private static UsbCalculator _calculator = new();
+        private static ScreenMirror _screenMirror;
+        private static bool _connected = false;
+
         static void Main(string[] args)
         {
-            using (Process screenCap = new Process())
-            {
-                screenCap.StartInfo.RedirectStandardOutput = true;
-                var process = Process.Start("./PyScreenCaptureLinux");
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.Start();
+            _calculator = new();
 
-                Console.WriteLine(process.StandardOutput.ReadToEnd());
+            if (!_calculator.Initialize())
+            {
+                Console.WriteLine("Calculator not found.");
+                return;
+            }
+            Console.WriteLine("Calculator Found");
+            // _calculator.DataReceived += new EventHandler<EndpointDataEventArgs>(DataReceivedHandler);
+
+            _connected = true;
+
+            if (true) // if cast screen
+            {
+                _screenMirror = new(ref _calculator, () => Capture());
+                _screenMirror.StartMirroring();
+                _screenMirror.OnUsbError += UsbErrorHandler;
+            }
+            else
+            {
+                _calculator.SendConnectDisconnectMessage();
+            }
+        }
+
+        private static void UsbErrorHandler(object sender, ErrorCode errorCode)
+        {
+            _screenMirror.StopMirroring();
+            DisconnectUsb();
+            Console.WriteLine(errorCode.ToString());
+        }
+
+        private static void DisconnectUsb()
+        {
+            try
+            {
+                _connected = false;
+                if (_screenMirror != null)
+                {
+                    _screenMirror.StopMirroring();
+                    _screenMirror = null;
+                }
+
+                if (_calculator != null)
+                {
+                    _calculator.DisconnectUsb();
+
+                    _calculator = null;
+                }
+            }
+            catch { }
+        }
+
+        public static byte[] Capture()
+        {
+            using (Process screenCap = new())
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    screenCap.StartInfo.FileName = "./PyScreenCaptureWindows.exe";
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    screenCap.StartInfo.FileName = "./PyScreenCaptureLinux";
+                }
+                else if (OperatingSystem.IsMacOS())
+                {
+                    screenCap.StartInfo.FileName = "./PyScreenCaptureMacOS";
+                }
+                else
+                {
+                    throw new PlatformNotSupportedException();
+                }
+
+                screenCap.StartInfo.RedirectStandardOutput = true;
+                screenCap.Start();
+
+                var screenStrs = screenCap.StandardOutput.ReadToEnd().Trim('[', ']', '\r', '\n').Split(',');
+
+                return screenStrs.ToList().ConvertAll(s => Convert.ToByte(s)).ToArray();
             }
         }
     }

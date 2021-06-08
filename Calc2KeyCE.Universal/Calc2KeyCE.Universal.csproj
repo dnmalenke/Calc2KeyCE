@@ -6,7 +6,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Magick.NET.Core" Version="7.0.1" />
+    <ProjectReference Include="..\Calc2KeyCE.Core\Calc2KeyCE.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="PyScreenCaptureLinux">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PyScreenCaptureMacOS">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PyScreenCaptureWindows.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -19,5 +19,6 @@
   <ItemGroup>
     <PackageReference Include="InputSimulatorCore" Version="1.0.5" />
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
+    <PackageReference Include="NetCoreSerial" Version="1.3.2" />
   </ItemGroup>
 </Project>

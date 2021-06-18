@@ -74,7 +74,8 @@ namespace Calc2KeyCE.Core.Usb
         private UsbDevice GetCalculator()
         {
             UsbRegDeviceList allDevices = UsbDevice.AllDevices;
-
+            // var finder = new UsbDeviceFinder(0x0451, 0xE009);
+            //return  UsbDevice.OpenUsbDevice(finder);
             foreach (UsbRegistry usbRegistry in allDevices)
             {
                 if (usbRegistry.Open(out UsbDevice dev))

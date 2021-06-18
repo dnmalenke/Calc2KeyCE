@@ -160,7 +160,7 @@ int main(void)
 	// memcpy((void*)strings[0]->bString, (wchar_t[]){'T', 'e', 'x', 'a', 's', ' ', 'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's', ' ', 'I', 'n', 'c', 'o', 'r', 'p', 'o', 'r', 'a', 't', 'e', 'd'}, 60);
 	// memcpy((void*)strings[1]->bString, (wchar_t[]){'T', 'I', '-', '8', '4', ' ', 'P', 'l', 'u', 's', ' ', 'C', 'E'}, 26);
 
-	const usb_string_descriptor_t* strings[238];
+	const usb_string_descriptor_t* strings[2];
 	strings[0] = string1;
 	strings[1] = string2;
 	//strings[237] = osStr;

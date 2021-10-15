@@ -68,6 +68,7 @@ namespace Calc2KeyCE.Core.KeyHandling
             LBRACKET = 0x1A,
             RBRACKET = 0x1B,
             RETURN = 0x1C,
+            ENTER = 0x1C,
             LCONTROLKEY = 0x1D,
             CONTROLKEY = 0x1D,
             A = 0x1E,

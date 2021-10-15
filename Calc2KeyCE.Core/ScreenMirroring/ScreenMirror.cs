@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Calc2KeyCE.Core.Usb;
@@ -13,6 +14,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
         private UsbEndpointWriter _calcWriter;
         private Thread _sendThread;
         private Thread _screenThread;
+       // private Thread _captureThread;
 
         private byte[] _compressedImage;
         private byte[] _uncompressedImage;
@@ -37,9 +39,14 @@ namespace Calc2KeyCE.Core.ScreenMirroring
         public void StartMirroring()
         {
             _connected = true;
-            _screenThread = new Thread(new ThreadStart(GetScreenArray));
+
+          
+
+           // _captureThread = new Thread(new ThreadStart(CaptureScreen));
+            _screenThread = new Thread(new ThreadStart(CompressScreenArray));
             _sendThread = new Thread(new ThreadStart(SendScreenToCalc));
 
+            //_captureThread.Start();
             _screenThread.Start();
         }
 
@@ -52,8 +59,19 @@ namespace Calc2KeyCE.Core.ScreenMirroring
             }
         }
 
-        private unsafe void GetScreenArray()
+        private void CaptureScreen()
         {
+            while (_connected)
+            {
+                _uncompressedImage = _captureFunc.Invoke();
+            }
+        }
+
+        private unsafe void CompressScreenArray()
+        {
+#if DEBUG
+            Stopwatch frameTimer = Stopwatch.StartNew();
+#endif
             while (_connected)
             {
                 _uncompressedImage = _captureFunc.Invoke();
@@ -88,12 +106,20 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 {
                     _sendThread.Start();
                 }
+
+#if DEBUG
+                Debug.WriteLine($"Capturing at {1.0 / (frameTimer.ElapsedMilliseconds / 1000.0)} fps");
+                frameTimer.Restart();
+#endif
             }
         }
 
         private void SendScreenToCalc()
         {
             ErrorCode c;
+#if DEBUG
+            Stopwatch frameTimer = Stopwatch.StartNew();
+#endif
             while (_connected)
             {
                 if (_compressedImage != null)
@@ -110,7 +136,10 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                         _calcWriter.Write(BitConverter.GetBytes(compImage.Length).ToArray(), 1000, out _);
                         c = _calcWriter.Write(compImage, 0, compImage.Length, 1000, out _);
                     }
-
+#if DEBUG
+                    Debug.WriteLine($"Sending at {1.0 / (frameTimer.ElapsedMilliseconds/1000.0)} fps");
+                    frameTimer.Restart();
+#endif
                     if (c != ErrorCode.Success)
                     {
                         _connected = false;

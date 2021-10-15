@@ -144,11 +144,11 @@ int main(void)
 	memset(&global, 0, sizeof(global_t));
 	memset((void*)lcd_Ram, 0, LCD_SIZE);
 
-	usb_string_descriptor_t* string1 = malloc(0x3E);
+	usb_string_descriptor_t* string1 = (usb_string_descriptor_t * )malloc(0x3E);
 	string1->bLength = 0x3E;
 	string1->bDescriptorType = 0x03;
 
-	usb_string_descriptor_t* string2 = malloc(0x1C);
+	usb_string_descriptor_t* string2 = (usb_string_descriptor_t*)malloc(0x1C);
 	string2->bLength = 0x1C;
 	string2->bDescriptorType = 0x03;
 

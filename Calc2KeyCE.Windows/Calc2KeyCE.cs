@@ -86,7 +86,24 @@ namespace Calc2KeyCE
             _screenMirror.StopMirroring();
             DisconnectUsb();
             DisconnectUI();
-            MessageBox.Show(errorCode.ToString());
+
+            if (errorCode != ErrorCode.IoTimedOut)
+            {
+                MessageBox.Show(errorCode.ToString());
+            }
+            else
+            {
+                if (ConnectBtn.InvokeRequired)
+                {
+                    SetPropCallback c = new(() => ConnectBtn_Click(null, EventArgs.Empty));
+                    Invoke(c);
+                }
+                else
+                {
+                    ConnectBtn_Click(null, EventArgs.Empty);
+                }
+            }
+
         }
 
         private void DisconnectUI()

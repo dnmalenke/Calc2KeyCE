@@ -38,7 +38,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
 
     public static class Optimize
     {
-        private const int MAX_OFFSET = 500; // 2176 default
+        private const int MAX_OFFSET = 50; // 2176 default
         private const int MAX_LEN = 65536; // 65536 default
 
         static int elias_gamma_bits(int value)

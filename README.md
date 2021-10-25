@@ -6,7 +6,7 @@ Demo:
 https://www.youtube.com/watch?v=Afdhxlz6EIk
 
 ## Installation Instructions:
-
+### Windows 11 may not be supported at the moment
 Install TI-Connect CE if you don't already have it
 
 Download and Copy the CE C 'Standard' Libraries https://github.com/CE-Programming/libraries/releases/ to your calculator <br/>

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\descriptors.c" />
     <ClCompile Include="src\main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -81,6 +82,7 @@
     <NMakeBuildCommandLine>c:\cedev\cedev.bat .</NMakeBuildCommandLine>
     <SourcePath>$(SourcePath)</SourcePath>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\CEdev\include;</ExternalIncludePath>
+    <IncludePath>C:\CEdev\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

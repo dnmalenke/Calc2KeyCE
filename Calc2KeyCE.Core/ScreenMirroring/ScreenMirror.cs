@@ -83,7 +83,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 CancellationTokenSource ctSource = new();
                 ctSource.CancelAfter(5000);
 
-                Optimal[] op = Optimize.optimize(_uncompressedImage, (uint)_uncompressedImage.Length, 0, ctSource.Token);
+                Optimal[] op = Optimize.optimize(_uncompressedImage, (uint)_uncompressedImage.Length, 512, ctSource.Token);
 
                 if (ctSource.IsCancellationRequested)
                 {
@@ -98,7 +98,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                     continue;
                 }
 
-                _compressedImage = Compress.compress(op, _uncompressedImage, (uint)_uncompressedImage.Length, 0, ref d, ref opZ);
+                _compressedImage = _uncompressedImage.Take(512).Concat(Compress.compress(op, _uncompressedImage, (uint)_uncompressedImage.Length, 512, ref d, ref opZ)).ToArray();
 
                 ctSource.Dispose();
 
@@ -108,7 +108,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 }
 
 #if DEBUG
-                Debug.WriteLine($"Capturing at {1.0 / (frameTimer.ElapsedMilliseconds / 1000.0)} fps");
+               // Debug.WriteLine($"Capturing at {1.0 / (frameTimer.ElapsedMilliseconds / 1000.0)} fps");
                 frameTimer.Restart();
 #endif
             }
@@ -125,15 +125,15 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 if (_compressedImage != null)
                 {
                     byte[] compImage = _compressedImage.ToArray();
-
+                    //Debug.WriteLine($"Size: {compImage.Length}");
                     if (compImage.Length >= 51200 || compImage.Length == 0)
                     {
-                        _calcWriter.Write(153600, 1000, out _);
-                        c = _calcWriter.Write(_uncompressedImage, 66, 153600, 10000, out _);
+                        _calcWriter.Write(_uncompressedImage.Length, 1000, out _);
+                        c = _calcWriter.Write(_uncompressedImage, 0, _uncompressedImage.Length, 10000, out _);
                     }
                     else
                     {
-                        _calcWriter.Write(BitConverter.GetBytes(compImage.Length).ToArray(), 1000, out _);
+                        _calcWriter.Write(compImage.Length, 1000, out _);
                         c = _calcWriter.Write(compImage, 0, compImage.Length, 1000, out _);
                     }
 #if DEBUG

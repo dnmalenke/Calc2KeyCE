@@ -19,6 +19,8 @@ namespace Calc2KeyCE
         private List<string> _previousKeys = new();
         private List<string> _addedKeys = new();
 
+        private System.Timers.Timer _keyHandleTimer = new(1);
+
         private bool _binding = false;
 
         private void DataReceivedHandler(object sender, EndpointDataEventArgs e)
@@ -83,10 +85,23 @@ namespace Calc2KeyCE
                 radioButton3.Invoke((MethodInvoker)(() => radioButton3.Visible = true));
                 _binding = false;
             }
+            else if(!_keyHandleTimer.Enabled)
+            {
+                _keyHandleTimer.Elapsed += KeyHandleTimerTick;
+                _keyHandleTimer.AutoReset = true;
+                _keyHandleTimer.Enabled = true;
+
+                KeyHandler.HandleBoundKeys(_boundKeys, _currentKeys, _previousKeys, _addedKeys, true, false);
+            }
             else
             {
-                KeyHandler.HandleBoundKeys(_boundKeys, _currentKeys, _previousKeys, _addedKeys);
+                KeyHandler.HandleBoundKeys(_boundKeys, _currentKeys, _previousKeys, _addedKeys, true, false);
             }
+        }
+
+        private void KeyHandleTimerTick(object sender, EventArgs e)
+        {
+            KeyHandler.HandleBoundKeys(_boundKeys, _currentKeys, _previousKeys, _addedKeys,false,true);
         }
 
         private void ClearBindingBox()

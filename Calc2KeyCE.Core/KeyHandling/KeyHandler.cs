@@ -6,7 +6,7 @@ namespace Calc2KeyCE.Core.KeyHandling
 {
     public static class KeyHandler
     {
-        private const double _mouseMoveIncrement = 0.05;
+        private const double _mouseMoveIncrement = 0.1;
         private static double _mouseMoveX = 0;
         private static double _mouseMoveY = 0;
 
@@ -14,25 +14,25 @@ namespace Calc2KeyCE.Core.KeyHandling
 
         private static IInputSimulator _inputSimulator = OperatingSystem.IsWindows() ? new WindowsInputSimulator() : throw new NotImplementedException();
 
-        public static void HandleBoundKeys(List<BoundKey> boundKeys, Dictionary<string, int> currentKeys, List<string> previousKeys, List<string> addedKeys)
+        public static void HandleBoundKeys(List<BoundKey> boundKeys, Dictionary<string, int> currentKeys, List<string> previousKeys, List<string> addedKeys, bool keyboard, bool mouse)
         {
             foreach (var boundKey in boundKeys.Where(bk => previousKeys.Except(addedKeys).Contains(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
             {
                 //keyup
 
-                if (boundKey.KeyboardAction != null)
+                if (boundKey.KeyboardAction != null && keyboard)
                 {
                     _inputSimulator.SendKey(GetDirectXKeyStroke(boundKey.KeyboardAction.Value), true, Keyboard.InputType.Keyboard);
                 }
 
-                if (boundKey.MouseButtonAction != null)
+                if (boundKey.MouseButtonAction != null && mouse)
                 {
                     _inputSimulator.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, true));
 
                     _currentMouseActions.Remove(boundKey.MouseButtonAction.ToString());
                 }
 
-                if (boundKey.MouseMoveAction != null)
+                if (boundKey.MouseMoveAction != null && mouse)
                 {
                     switch (boundKey.MouseMoveAction.Value)
                     {
@@ -58,9 +58,9 @@ namespace Calc2KeyCE.Core.KeyHandling
 
             foreach (var boundKey in boundKeys.Where(bk => currentKeys.ContainsKey(Enum.GetName(typeof(CalculatorKeyboard.AllKeys), bk.CalcKey))))
             {
-                //keydown
+                //keydown                
 
-                if (boundKey.KeyboardAction != null)
+                if (boundKey.KeyboardAction != null && keyboard)
                 {
                     if (currentKeys[boundKey.CalcKey.ToString()] == 1 || currentKeys[boundKey.CalcKey.ToString()] > 50)
                     {
@@ -68,14 +68,14 @@ namespace Calc2KeyCE.Core.KeyHandling
                     }
                 }
 
-                if (boundKey.MouseButtonAction != null && !_currentMouseActions.Contains(boundKey.MouseButtonAction.ToString()))
+                if (boundKey.MouseButtonAction != null && !_currentMouseActions.Contains(boundKey.MouseButtonAction.ToString()) && mouse)
                 {
                     _inputSimulator.MouseEvent(GetMouseEventFlag(boundKey.MouseButtonAction.Value, false));
 
                     _currentMouseActions.Add(boundKey.MouseButtonAction.ToString());
                 }
 
-                if (boundKey.MouseMoveAction != null)
+                if (boundKey.MouseMoveAction != null && mouse)
                 {
                     switch (boundKey.MouseMoveAction.Value)
                     {
@@ -109,7 +109,7 @@ namespace Calc2KeyCE.Core.KeyHandling
                 }
             }
 
-            if (Math.Round(_mouseMoveX) != 0 || Math.Round(_mouseMoveY) != 0)
+            if (mouse && Math.Round(_mouseMoveX) != 0 || Math.Round(_mouseMoveY) != 0)
             {
                 var mousePosition = MouseOperations.GetCursorPosition();
                 _inputSimulator.MoveMouseBy((int)Math.Round(_mouseMoveX), (int)Math.Round(_mouseMoveY));

@@ -1,5 +1,7 @@
 typedef struct global global_t;
 #define usb_callback_data_t global_t
+#define TIMER_FREQ      32768 /* Frequency of timer in Hz */
+#define ONE_SECOND      (TIMER_FREQ /8)
 
 #include <compression.h>
 #include <tice.h>
@@ -8,6 +10,7 @@ typedef struct global global_t;
 #include <usbdrvce.h>
 #include "descriptors.c"
 #include <keypadc.h>
+#include <stdio.h>
 
 struct global
 {
@@ -19,21 +22,33 @@ struct global
 
 static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data);
 static usb_error_t handleUsbEvent(usb_event_t event, void* event_data, usb_callback_data_t* callback_data);
+static void sendKeyData();
 
 global_t global;
 uint32_t screenSize = 4;
 uint32_t prog = 0;
 bool connected = false;
 void* buffer = 0;
+static const uint64_t zeros = 0;
+bool sendKeys = true;
+static uint8_t* keys;
 
 int main(void)
 {
 	usb_error_t error;
+	keys = malloc(7);
 	memset(&global, 0, sizeof(global_t));
 	memset((void*)lcd_Ram, 0, LCD_SIZE);
 
 	// https://wikiti.brandonw.net/index.php?title=84PCE:Ports:4000
 	lcd_Control = 0b00000100100100111;
+
+	timer_Disable(1);
+
+	timer_Set(1, ONE_SECOND);
+	timer_SetReload(1, ONE_SECOND);
+
+	timer_Enable(1, TIMER_32K, TIMER_0INT, TIMER_DOWN);
 
 	init_descriptors();
 
@@ -43,9 +58,24 @@ int main(void)
 		{
 			if (connected)
 			{
-				//kb_Scan(); // use timer
-				//uint8_t keys[] = { kb_Data[1], kb_Data[2], kb_Data[3], kb_Data[4], kb_Data[5], kb_Data[6], kb_Data[7] };
-				//usb_BulkTransfer(global.in, &keys, 7, 0, NULL);	
+				if (timer_ChkInterrupt(1, TIMER_RELOADED))
+				{
+					kb_Scan();
+
+					if (memcmp(keys, &zeros, 7)) {
+						sendKeyData();
+						sendKeys = false;
+					}
+					else {
+						sendKeys = true;
+					}
+
+					if (sendKeys) {
+						sendKeyData();
+					}
+
+					timer_AckInterrupt(1, TIMER_RELOADED);
+				}
 			}
 			else if (os_GetCSC())
 			{
@@ -59,8 +89,21 @@ int main(void)
 	lcd_Control = 0b00000100100101101;
 
 	cleanup_descriptors();
+	free(keys);
+	free(buffer);
 
 	return 0;
+}
+
+static void sendKeyData() {
+	keys[0] = kb_Data[1];
+	keys[1] = kb_Data[2];
+	keys[2] = kb_Data[3];
+	keys[3] = kb_Data[4];
+	keys[4] = kb_Data[5];
+	keys[5] = kb_Data[6];
+	keys[6] = kb_Data[7];
+	usb_BulkTransfer(global.in, keys, 7, 0, NULL);
 }
 
 static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data)
@@ -89,12 +132,14 @@ static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t 
 		{
 			if (screenSize >= 51200)
 			{
-				if (prog == 0) {
+				if (prog == 0)
+				{
 					memcpy((void*)lcd_Palette, data, 512);
 
-					memcpy((void*)lcd_Ram, (void*)(data + 512), transferred - 512);
+					memcpy((void*)lcd_Ram, (data + 512), transferred - 512);
 				}
-				else {
+				else
+				{
 					memcpy((void*)lcd_Ram + prog - 512, data, transferred);
 				}
 
@@ -106,7 +151,7 @@ static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t 
 			else
 			{
 				memcpy((void*)lcd_Palette, data, 512);
-				zx7_Decompress((void*)lcd_Ram, (void*)(data + 512));
+				zx7_Decompress((void*)lcd_Ram, (data + 512));
 				screenSize = 4;
 			}
 		}

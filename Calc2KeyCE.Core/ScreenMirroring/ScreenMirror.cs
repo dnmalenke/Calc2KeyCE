@@ -28,7 +28,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
         /// </summary>
         /// <param name="calculator"></param>
         /// <param name="captureFunc"> 
-        /// Function that returns a 320x240 byte array of the screen in rgb565 format
+        /// Function that returns a 320x240 byte array of the screen in 8bpp indexed color mode. First 512 bytes is the palette
         /// </param>
         public ScreenMirror(ref UsbCalculator calculator, Func<byte[]> captureFunc)
         {
@@ -40,13 +40,9 @@ namespace Calc2KeyCE.Core.ScreenMirroring
         {
             _connected = true;
 
-          
-
-           // _captureThread = new Thread(new ThreadStart(CaptureScreen));
             _screenThread = new Thread(new ThreadStart(CompressScreenArray));
             _sendThread = new Thread(new ThreadStart(SendScreenToCalc));
 
-            //_captureThread.Start();
             _screenThread.Start();
         }
 
@@ -79,7 +75,6 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 long d = 0;
                 long opZ = 0;
 
-                // for some reason when the window maximizes the optimize funtion takes a LONG time to run. This cancels it in that situation.
                 CancellationTokenSource ctSource = new();
                 ctSource.CancelAfter(5000);
 
@@ -108,7 +103,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 }
 
 #if DEBUG
-               // Debug.WriteLine($"Capturing at {1.0 / (frameTimer.ElapsedMilliseconds / 1000.0)} fps");
+                Debug.WriteLine($"Capturing at {1.0 / (frameTimer.ElapsedMilliseconds / 1000.0)} fps");
                 frameTimer.Restart();
 #endif
             }
@@ -125,7 +120,6 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 if (_compressedImage != null)
                 {
                     byte[] compImage = _compressedImage.ToArray();
-                    //Debug.WriteLine($"Size: {compImage.Length}");
                     if (compImage.Length >= 51200 || compImage.Length == 0)
                     {
                         _calcWriter.Write(_uncompressedImage.Length, 1000, out _);

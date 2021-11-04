@@ -4,8 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Vanara.PInvoke;
 
@@ -36,56 +37,33 @@ namespace Calc2KeyCE.ScreenMirroring
             User32.ReleaseDC(desktopWindow, windowDc);
 
             var shrunkImage = resultBmp.GetThumbnailImage(320, 240, null, IntPtr.Zero);
-
-            var cloned = ImageExtensions.ConvertPixelFormat(shrunkImage, PixelFormat.Format8bppIndexed, OptimizedPaletteQuantizer.Octree(),ErrorDiffusionDitherer.FloydSteinberg);
-
-            ////var cloned = ((Bitmap)shrunkImage).Clone(new Rectangle(0, 0, shrunkImage.Width, shrunkImage.Height), PixelFormat.Format8bppIndexed);
-            //Bitmap cloned = new(shrunkImage.Width, shrunkImage.Height, PixelFormat.Format8bppIndexed);
-
-            //using (MemoryStream ms = new MemoryStream())
-            //{
-            //    shrunkImage.Save(ms, ImageFormat.Gif);
-            //    cloned = (Bitmap)Image.FromStream(ms);
-            //}
-
-
-            
-            
-            short[] colors = new short[256];
-
-            for (int i = 0; i < cloned.Palette.Entries.Length; i++)
-            {
-                colors[i] = ConvertColor(cloned.Palette.Entries[i].R, cloned.Palette.Entries[i].G, cloned.Palette.Entries[i].B);
-            }
-
-            byte[] colorBytes = new byte[colors.Length * sizeof(short)];
-            Buffer.BlockCopy(colors, 0, colorBytes, 0, colorBytes.Length);
-
             resultBmp.Dispose();
+            
+            var cloned = shrunkImage.ConvertPixelFormatAsync(PixelFormat.Format8bppIndexed, OptimizedPaletteQuantizer.Octree(), ErrorDiffusionDitherer.FloydSteinberg, new TaskConfig()).GetAwaiter().GetResult();
             shrunkImage.Dispose();
 
-            List<byte> data = new List<byte>(); // indexes
-            List<Color> pixels = cloned.Palette.Entries.ToList(); // palette
+            short[] colors = new short[256];
 
-            for (int i = 0; i < cloned.Height; i++)
-                for (int j = 0; j < cloned.Width; j++)
-                    data.Add((byte)pixels.IndexOf(cloned.GetPixel(j, i)));
+            var pal = (Color[])cloned.Palette.Entries.Clone();
+            Parallel.For(0, cloned.Palette.Entries.Length, i =>
+            {
+                colors[i] = ConvertColor(pal[i].R, pal[i].G, pal[i].B);
+            });
 
-            //return data.ToArray();
+            byte[] imageBytes = new byte[colors.Length * sizeof(short) + cloned.Width * cloned.Height];
+            Buffer.BlockCopy(colors, 0, imageBytes, 0, colors.Length * sizeof(short));
 
+            BitmapData imageData = cloned.LockBits(new Rectangle(0, 0, cloned.Width, cloned.Height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
+            Marshal.Copy(imageData.Scan0, imageBytes, colors.Length * sizeof(short), cloned.Width * cloned.Height);
+            cloned.UnlockBits(imageData);
             cloned.Dispose();
 
-            return colorBytes.Concat(data).ToArray();
+            return imageBytes;
         }
-
 
         public static short ConvertColor(byte red, byte green, byte blue)
         {
-            short color = (short)((int)Math.Round(red * 31 / 255.0) << 10);
-            color += (short)((int)Math.Round(green * 31 / 255.0) << 5);
-            color += (short)((int)Math.Round(blue * 31 / 255.0) << 0);
-
-            return color;
+            return (short)(((int)Math.Round(red * 31 / 255.0) << 10) + ((int)Math.Round(green * 31 / 255.0) << 5) + ((int)Math.Round(blue * 31 / 255.0) << 0));
         }
     }
 }

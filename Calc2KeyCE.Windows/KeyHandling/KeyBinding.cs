@@ -101,7 +101,7 @@ namespace Calc2KeyCE
 
         private void KeyHandleTimerTick(object sender, EventArgs e)
         {
-            KeyHandler.HandleBoundKeys(_boundKeys, _currentKeys, _previousKeys, _addedKeys,false,true);
+            KeyHandler.HandleBoundKeys(_boundKeys.ToList(), _currentKeys, _previousKeys.ToList(), _addedKeys.ToList(), false,true);
         }
 
         private void ClearBindingBox()

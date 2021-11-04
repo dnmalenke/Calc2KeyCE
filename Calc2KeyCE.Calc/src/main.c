@@ -1,7 +1,7 @@
 typedef struct global global_t;
 #define usb_callback_data_t global_t
-#define TIMER_FREQ      32768 /* Frequency of timer in Hz */
-#define ONE_SECOND      (TIMER_FREQ /8)
+#define TIMER_FREQ      32768 // Frequency of timer in Hz
+#define KEY_RATE      (TIMER_FREQ /16)
 
 #include <compression.h>
 #include <tice.h>
@@ -45,8 +45,8 @@ int main(void)
 
 	timer_Disable(1);
 
-	timer_Set(1, ONE_SECOND);
-	timer_SetReload(1, ONE_SECOND);
+	timer_Set(1, KEY_RATE);
+	timer_SetReload(1, KEY_RATE);
 
 	timer_Enable(1, TIMER_32K, TIMER_0INT, TIMER_DOWN);
 

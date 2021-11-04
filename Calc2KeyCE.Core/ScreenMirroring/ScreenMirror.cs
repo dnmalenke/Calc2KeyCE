@@ -14,7 +14,6 @@ namespace Calc2KeyCE.Core.ScreenMirroring
         private UsbEndpointWriter _calcWriter;
         private Thread _sendThread;
         private Thread _screenThread;
-        // private Thread _captureThread;
 
         private byte[] _compressedImage;
         private byte[] _uncompressedImage;
@@ -52,14 +51,6 @@ namespace Calc2KeyCE.Core.ScreenMirroring
             {
                 _connected = false;
                 _sendThread.Join();
-            }
-        }
-
-        private void CaptureScreen()
-        {
-            while (_connected)
-            {
-                _uncompressedImage = _captureFunc.Invoke();
             }
         }
 

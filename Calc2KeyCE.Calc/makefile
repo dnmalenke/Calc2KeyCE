@@ -5,7 +5,7 @@
 NAME        ?= CALC2KEY
 COMPRESSED  ?= YES
 ICON        ?= iconc.png
-DESCRIPTION ?= "Calc2KEYCE"
+DESCRIPTION ?= "Calc2KEYCE 1.4.0"
 ARCHIVED ?= NO
 
 CFLAGS ?= -Wall -Wextra -Oz

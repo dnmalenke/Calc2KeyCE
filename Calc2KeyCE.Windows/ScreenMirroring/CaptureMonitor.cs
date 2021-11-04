@@ -14,12 +14,13 @@ namespace Calc2KeyCE.ScreenMirroring
 {
     public static class CaptureMonitor
     {
-        private static int errorCount = 0;
+        private static int _errorCount = 0;
 
         private static byte[] CaptureErr(Screen monitor, Exception ex)
         {
-            if(errorCount > 2)
+            if (_errorCount > 3)
             {
+                MessageBox.Show(ex.Message, "Error");
                 throw ex;
             }
 
@@ -28,9 +29,11 @@ namespace Calc2KeyCE.ScreenMirroring
 
         public static byte[] Capture(Screen monitor)
         {
-            Bitmap resultBmp = null;
+
+            byte[] imageBytes = null;
             try
             {
+                Bitmap resultBmp = null;
                 Rectangle monitorRect = monitor.Bounds;
                 HWND desktopWindow = User32.GetDesktopWindow();
                 HDC windowDc = User32.GetWindowDC(desktopWindow);
@@ -61,35 +64,35 @@ namespace Calc2KeyCE.ScreenMirroring
                 Gdi32.DeleteDC(memDc);
                 User32.ReleaseDC(desktopWindow, windowDc);
 
-                errorCount = 0;
+                var shrunkImage = resultBmp.GetThumbnailImage(320, 240, null, IntPtr.Zero);
+                resultBmp.Dispose();
+
+                var cloned = shrunkImage.ConvertPixelFormatAsync(PixelFormat.Format8bppIndexed, OptimizedPaletteQuantizer.Octree(), ErrorDiffusionDitherer.FloydSteinberg, new TaskConfig()).GetAwaiter().GetResult();
+                shrunkImage.Dispose();
+
+                short[] colors = new short[256];
+
+                var pal = (Color[])cloned.Palette.Entries.Clone();
+                Parallel.For(0, cloned.Palette.Entries.Length, i =>
+                {
+                    colors[i] = ConvertColor(pal[i].R, pal[i].G, pal[i].B);
+                });
+
+                imageBytes = new byte[colors.Length * sizeof(short) + cloned.Width * cloned.Height];
+                Buffer.BlockCopy(colors, 0, imageBytes, 0, colors.Length * sizeof(short));
+
+                BitmapData imageData = cloned.LockBits(new Rectangle(0, 0, cloned.Width, cloned.Height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
+                Marshal.Copy(imageData.Scan0, imageBytes, colors.Length * sizeof(short), cloned.Width * cloned.Height);
+                cloned.UnlockBits(imageData);
+                cloned.Dispose();
+
+                _errorCount = 0;
             }
             catch (Exception ex)
             {
-                errorCount++;
-                return CaptureErr(monitor,ex);
+                _errorCount++;
+                return CaptureErr(monitor, ex);
             }
-
-            var shrunkImage = resultBmp.GetThumbnailImage(320, 240, null, IntPtr.Zero);
-            resultBmp.Dispose();
-
-            var cloned = shrunkImage.ConvertPixelFormatAsync(PixelFormat.Format8bppIndexed, OptimizedPaletteQuantizer.Octree(), ErrorDiffusionDitherer.FloydSteinberg, new TaskConfig()).GetAwaiter().GetResult();
-            shrunkImage.Dispose();
-
-            short[] colors = new short[256];
-
-            var pal = (Color[])cloned.Palette.Entries.Clone();
-            Parallel.For(0, cloned.Palette.Entries.Length, i =>
-            {
-                colors[i] = ConvertColor(pal[i].R, pal[i].G, pal[i].B);
-            });
-
-            byte[] imageBytes = new byte[colors.Length * sizeof(short) + cloned.Width * cloned.Height];
-            Buffer.BlockCopy(colors, 0, imageBytes, 0, colors.Length * sizeof(short));
-
-            BitmapData imageData = cloned.LockBits(new Rectangle(0, 0, cloned.Width, cloned.Height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
-            Marshal.Copy(imageData.Scan0, imageBytes, colors.Length * sizeof(short), cloned.Width * cloned.Height);
-            cloned.UnlockBits(imageData);
-            cloned.Dispose();
 
             return imageBytes;
         }

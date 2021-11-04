@@ -13,7 +13,7 @@ using Vanara.PInvoke;
 namespace Calc2KeyCE.ScreenMirroring
 {
     public static class CaptureMonitor
-    {
+    {       
         public static byte[] Capture(Screen monitor)
         {
             Rectangle monitorRect = monitor.Bounds;
@@ -25,6 +25,17 @@ namespace Calc2KeyCE.ScreenMirroring
             var oldBitmap = Gdi32.SelectObject(memDc, bitmap);
 
             bool result = Gdi32.BitBlt(memDc, 0, 0, monitorRect.Width, monitorRect.Height, windowDc, 0, 0, Gdi32.RasterOperationMode.SRCCOPY);
+
+            User32.CURSORINFO pci = new();
+            pci.cbSize = (uint)Marshal.SizeOf(typeof(User32.CURSORINFO));
+
+            if (User32.GetCursorInfo(ref pci))
+            {
+                if (pci.flags == User32.CursorState.CURSOR_SHOWING)
+                {
+                    User32.DrawIcon(memDc, pci.ptScreenPos.X, pci.ptScreenPos.Y, pci.hCursor.DangerousGetHandle());
+                }
+            }
 
             if (result)
             {
@@ -38,7 +49,7 @@ namespace Calc2KeyCE.ScreenMirroring
 
             var shrunkImage = resultBmp.GetThumbnailImage(320, 240, null, IntPtr.Zero);
             resultBmp.Dispose();
-            
+
             var cloned = shrunkImage.ConvertPixelFormatAsync(PixelFormat.Format8bppIndexed, OptimizedPaletteQuantizer.Octree(), ErrorDiffusionDitherer.FloydSteinberg, new TaskConfig()).GetAwaiter().GetResult();
             shrunkImage.Dispose();
 

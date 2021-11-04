@@ -14,7 +14,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
         private UsbEndpointWriter _calcWriter;
         private Thread _sendThread;
         private Thread _screenThread;
-       // private Thread _captureThread;
+        // private Thread _captureThread;
 
         private byte[] _compressedImage;
         private byte[] _uncompressedImage;
@@ -103,7 +103,7 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                 }
 
 #if DEBUG
-               // Debug.WriteLine($"Capturing at {1.0 / (frameTimer.ElapsedMilliseconds / 1000.0)} fps");
+                // Debug.WriteLine($"Capturing at {1.0 / (frameTimer.ElapsedMilliseconds / 1000.0)} fps");
                 frameTimer.Restart();
 #endif
             }
@@ -131,8 +131,8 @@ namespace Calc2KeyCE.Core.ScreenMirroring
                         c = _calcWriter.Write(compImage, 0, compImage.Length, 1000, out _);
                     }
 #if DEBUG
-                    //Debug.WriteLine($"Size: {compImage.Length}");
-                    //Debug.WriteLine($"Sending at {1.0 / (frameTimer.ElapsedMilliseconds/1000.0)} fps");
+                    // Debug.WriteLine($"Size: {compImage.Length}");
+                    // Debug.WriteLine($"Sending at {1.0 / (frameTimer.ElapsedMilliseconds/1000.0)} fps");
                     frameTimer.Restart();
 #endif
                     if (c != ErrorCode.Success)

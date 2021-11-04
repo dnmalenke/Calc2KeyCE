@@ -21,10 +21,14 @@ namespace Calc2KeyCE
 
         private System.Timers.Timer _keyHandleTimer = new(1);
 
+        private DateTime _lastDataTime = new();
+
         private bool _binding = false;
 
         private void DataReceivedHandler(object sender, EndpointDataEventArgs e)
         {
+            _lastDataTime = DateTime.Now;
+
             byte[] rawKeyboardData = e.Buffer.Take(7).ToArray();
 
             _previousKeys = _currentKeys.Keys.ToList();
@@ -46,7 +50,7 @@ namespace Calc2KeyCE
 
             for (int i = 0; i < rawKeyboardData.Length; i++)
             {
-                if(rawKeyboardData[i] == 0)
+                if (rawKeyboardData[i] == 0)
                 {
                     continue;
                 }
@@ -85,7 +89,7 @@ namespace Calc2KeyCE
                 radioButton3.Invoke((MethodInvoker)(() => radioButton3.Visible = true));
                 _binding = false;
             }
-            else if(!_keyHandleTimer.Enabled)
+            else if (!_keyHandleTimer.Enabled)
             {
                 _keyHandleTimer.Elapsed += KeyHandleTimerTick;
                 _keyHandleTimer.AutoReset = true;
@@ -101,7 +105,12 @@ namespace Calc2KeyCE
 
         private void KeyHandleTimerTick(object sender, EventArgs e)
         {
-            KeyHandler.HandleBoundKeys(_boundKeys.ToList(), _currentKeys, _previousKeys.ToList(), _addedKeys.ToList(), false,true);
+            KeyHandler.HandleBoundKeys(_boundKeys.ToList(), _currentKeys, _previousKeys.ToList(), _addedKeys.ToList(), false, true);
+
+            if(DateTime.Now.Subtract(_lastDataTime).TotalMilliseconds > 500)
+            {
+                _keyHandleTimer.Enabled = false;
+            }
         }
 
         private void ClearBindingBox()
@@ -155,7 +164,7 @@ namespace Calc2KeyCE
             radioButton2.Checked = false;
             radioButton3.Checked = false;
         }
-        
+
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
             if (radioButton1.Checked)

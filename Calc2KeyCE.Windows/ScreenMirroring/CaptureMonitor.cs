@@ -13,39 +13,61 @@ using Vanara.PInvoke;
 namespace Calc2KeyCE.ScreenMirroring
 {
     public static class CaptureMonitor
-    {       
+    {
+        private static int errorCount = 0;
+
+        private static byte[] CaptureErr(Screen monitor, Exception ex)
+        {
+            if(errorCount > 2)
+            {
+                throw ex;
+            }
+
+            return Capture(monitor);
+        }
+
         public static byte[] Capture(Screen monitor)
         {
-            Rectangle monitorRect = monitor.Bounds;
             Bitmap resultBmp = null;
-            HWND desktopWindow = User32.GetDesktopWindow();
-            HDC windowDc = User32.GetWindowDC(desktopWindow);
-            HDC memDc = Gdi32.CreateCompatibleDC(windowDc);
-            var bitmap = Gdi32.CreateCompatibleBitmap(windowDc, monitorRect.Width, monitorRect.Height);
-            var oldBitmap = Gdi32.SelectObject(memDc, bitmap);
-
-            bool result = Gdi32.BitBlt(memDc, 0, 0, monitorRect.Width, monitorRect.Height, windowDc, 0, 0, Gdi32.RasterOperationMode.SRCCOPY);
-
-            User32.CURSORINFO pci = new();
-            pci.cbSize = (uint)Marshal.SizeOf(typeof(User32.CURSORINFO));
-
-            if (User32.GetCursorInfo(ref pci))
+            try
             {
-                if (pci.flags == User32.CursorState.CURSOR_SHOWING)
+                Rectangle monitorRect = monitor.Bounds;
+                HWND desktopWindow = User32.GetDesktopWindow();
+                HDC windowDc = User32.GetWindowDC(desktopWindow);
+                HDC memDc = Gdi32.CreateCompatibleDC(windowDc);
+                var bitmap = Gdi32.CreateCompatibleBitmap(windowDc, monitorRect.Width, monitorRect.Height);
+                var oldBitmap = Gdi32.SelectObject(memDc, bitmap);
+
+                bool result = Gdi32.BitBlt(memDc, 0, 0, monitorRect.Width, monitorRect.Height, windowDc, 0, 0, Gdi32.RasterOperationMode.SRCCOPY);
+
+                User32.CURSORINFO pci = new();
+                pci.cbSize = (uint)Marshal.SizeOf(typeof(User32.CURSORINFO));
+
+                if (User32.GetCursorInfo(ref pci))
                 {
-                    User32.DrawIcon(memDc, pci.ptScreenPos.X, pci.ptScreenPos.Y, pci.hCursor.DangerousGetHandle());
+                    if (pci.flags == User32.CursorState.CURSOR_SHOWING)
+                    {
+                        User32.DrawIcon(memDc, pci.ptScreenPos.X, pci.ptScreenPos.Y, pci.hCursor.DangerousGetHandle());
+                    }
                 }
-            }
 
-            if (result)
+                if (result)
+                {
+                    resultBmp = bitmap.ToBitmap();
+                }
+
+                Gdi32.SelectObject(memDc, oldBitmap);
+                Gdi32.DeleteObject(bitmap);
+                Gdi32.DeleteDC(memDc);
+                User32.ReleaseDC(desktopWindow, windowDc);
+
+                errorCount = 0;
+            }
+            catch (Exception ex)
             {
-                resultBmp = bitmap.ToBitmap();
+                errorCount++;
+                return CaptureErr(monitor,ex);
             }
-
-            Gdi32.SelectObject(memDc, oldBitmap);
-            Gdi32.DeleteObject(bitmap);
-            Gdi32.DeleteDC(memDc);
-            User32.ReleaseDC(desktopWindow, windowDc);
 
             var shrunkImage = resultBmp.GetThumbnailImage(320, 240, null, IntPtr.Zero);
             resultBmp.Dispose();

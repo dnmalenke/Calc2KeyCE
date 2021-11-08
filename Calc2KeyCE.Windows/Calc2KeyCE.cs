@@ -10,6 +10,7 @@ using Calc2KeyCE.ScreenMirroring;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using Newtonsoft.Json;
+using Vanara.PInvoke;
 
 namespace Calc2KeyCE
 {
@@ -32,6 +33,17 @@ namespace Calc2KeyCE
         private void Form1_Load(object sender, EventArgs e)
         {
             UpdateBoundKeyList();
+
+            foreach (var screen in Screen.AllScreens)
+            {
+                MonitorSelectBox.Items.Add(new KeyValuePair<Screen, string>(screen, $"{screen.DeviceName} : {screen.Bounds.Width}x{screen.Bounds.Height}"));
+            }
+            MonitorSelectBox.DisplayMember = "Value";
+
+            if (MonitorSelectBox.Items.Count > 0)
+            {
+                MonitorSelectBox.SelectedIndex = 0;
+            }
         }
 
         private void ConnectBtn_Click(object sender, EventArgs e)
@@ -55,10 +67,12 @@ namespace Calc2KeyCE
                 LoadOverButton.Visible = true;
                 LoadAddBtn.Visible = true;
                 CastScreenCheckBox.Visible = false;
+                MonitorSelectBox.Visible = false;
 
                 if (CastScreenCheckBox.Checked)
                 {
-                    _screenMirror = new(ref _calculator, () => CaptureMonitor.Capture(Screen.PrimaryScreen));
+                    Screen selectedScreen = ((KeyValuePair<Screen, string>)MonitorSelectBox.SelectedItem).Key;
+                    _screenMirror = new(ref _calculator, () => CaptureMonitor.Capture(selectedScreen));
                     _screenMirror.StartMirroring();
                     _screenMirror.OnUsbError += UsbErrorHandler;
                 }
@@ -122,6 +136,7 @@ namespace Calc2KeyCE
                 LoadOverButton.Visible = false;
                 LoadAddBtn.Visible = false;
                 CastScreenCheckBox.Visible = true;
+                MonitorSelectBox.Visible = true;
             }
         }
 

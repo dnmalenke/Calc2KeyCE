@@ -136,7 +136,7 @@ static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t 
 				{
 					memcpy((void*)lcd_Palette, data, 512);
 
-					memcpy((void*)lcd_Ram, (data + 512), transferred - 512);
+					memcpy((void*)lcd_Ram, ((char*)data + 512), transferred - 512);
 				}
 				else
 				{
@@ -151,7 +151,7 @@ static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t 
 			else
 			{
 				memcpy((void*)lcd_Palette, data, 512);
-				zx7_Decompress((void*)lcd_Ram, (data + 512));
+				zx7_Decompress((void*)lcd_Ram, ((char*)data + 512));
 				screenSize = 4;
 			}
 		}

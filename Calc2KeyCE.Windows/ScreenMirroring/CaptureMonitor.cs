@@ -29,7 +29,6 @@ namespace Calc2KeyCE.ScreenMirroring
 
         public static byte[] Capture(Screen monitor)
         {
-
             byte[] imageBytes = null;
             try
             {
@@ -41,7 +40,7 @@ namespace Calc2KeyCE.ScreenMirroring
                 var bitmap = Gdi32.CreateCompatibleBitmap(windowDc, monitorRect.Width, monitorRect.Height);
                 var oldBitmap = Gdi32.SelectObject(memDc, bitmap);
 
-                bool result = Gdi32.BitBlt(memDc, 0, 0, monitorRect.Width, monitorRect.Height, windowDc, 0, 0, Gdi32.RasterOperationMode.SRCCOPY);
+                bool result = Gdi32.BitBlt(memDc, 0, 0, monitorRect.Width, monitorRect.Height, windowDc, monitorRect.X, monitorRect.Y, Gdi32.RasterOperationMode.SRCCOPY);
 
                 User32.CURSORINFO pci = new();
                 pci.cbSize = (uint)Marshal.SizeOf(typeof(User32.CURSORINFO));
@@ -50,7 +49,7 @@ namespace Calc2KeyCE.ScreenMirroring
                 {
                     if (pci.flags == User32.CursorState.CURSOR_SHOWING)
                     {
-                        User32.DrawIcon(memDc, pci.ptScreenPos.X, pci.ptScreenPos.Y, pci.hCursor.DangerousGetHandle());
+                        User32.DrawIcon(memDc, pci.ptScreenPos.X - monitorRect.X, pci.ptScreenPos.Y - monitorRect.Y, pci.hCursor.DangerousGetHandle());
                     }
                 }
 

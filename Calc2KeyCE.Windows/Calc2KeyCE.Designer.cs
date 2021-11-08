@@ -52,6 +52,7 @@
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.CastScreenCheckBox = new System.Windows.Forms.CheckBox();
+            this.MonitorSelectBox = new System.Windows.Forms.ComboBox();
             this.KeyBindingBox.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -313,11 +314,20 @@
             this.CastScreenCheckBox.Text = "Cast Screen";
             this.CastScreenCheckBox.UseVisualStyleBackColor = true;
             // 
+            // MonitorSelectBox
+            // 
+            this.MonitorSelectBox.FormattingEnabled = true;
+            this.MonitorSelectBox.Location = new System.Drawing.Point(18, 40);
+            this.MonitorSelectBox.Name = "MonitorSelectBox";
+            this.MonitorSelectBox.Size = new System.Drawing.Size(227, 23);
+            this.MonitorSelectBox.TabIndex = 13;
+            // 
             // Calc2KeyCE
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(615, 330);
+            this.Controls.Add(this.MonitorSelectBox);
             this.Controls.Add(this.CastScreenCheckBox);
             this.Controls.Add(this.LoadAddBtn);
             this.Controls.Add(this.LoadOverButton);
@@ -365,6 +375,7 @@
         private System.Windows.Forms.Button RemoveBindBtn;
         private System.Windows.Forms.Button ClearBindBtn;
         private System.Windows.Forms.CheckBox CastScreenCheckBox;
+        private System.Windows.Forms.ComboBox MonitorSelectBox;
     }
 }
 

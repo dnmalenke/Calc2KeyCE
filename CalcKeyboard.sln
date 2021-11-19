@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30406.217
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calc2KeyCE.Core", "Calc2KeyCE.Core\Calc2KeyCE.Core.csproj", "{5229767A-8875-40DB-A0B9-913C49DE7CF0}"
 EndProject
@@ -14,7 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		PyCalcUsb.py = PyCalcUsb.py
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calc2KeyCE.Universal", "Calc2KeyCE.Universal\Calc2KeyCE.Universal.csproj", "{D42072F7-2603-4390-B037-242ECC5C3433}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Calc2KeyCE.Universal", "Calc2KeyCE.Universal\Calc2KeyCE.Universal.pyproj", "{347E5C16-01A2-4CCC-8DF4-FE6595AA7E46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calc2KeyCE.Compression", "Calc2KeyCE.Compression\Calc2KeyCE.Compression.csproj", "{CB718309-50B4-41F9-8213-244B4FD07833}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,18 +63,24 @@ Global
 		{757D5D66-8742-4236-8D76-5F4E64DE1D24}.Release|x64.Build.0 = Release|Any CPU
 		{757D5D66-8742-4236-8D76-5F4E64DE1D24}.Release|x86.ActiveCfg = Release|Any CPU
 		{757D5D66-8742-4236-8D76-5F4E64DE1D24}.Release|x86.Build.0 = Release|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Debug|x64.Build.0 = Debug|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Debug|x86.Build.0 = Debug|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Release|x64.ActiveCfg = Release|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Release|x64.Build.0 = Release|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Release|x86.ActiveCfg = Release|Any CPU
-		{D42072F7-2603-4390-B037-242ECC5C3433}.Release|x86.Build.0 = Release|Any CPU
+		{347E5C16-01A2-4CCC-8DF4-FE6595AA7E46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{347E5C16-01A2-4CCC-8DF4-FE6595AA7E46}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{347E5C16-01A2-4CCC-8DF4-FE6595AA7E46}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{347E5C16-01A2-4CCC-8DF4-FE6595AA7E46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{347E5C16-01A2-4CCC-8DF4-FE6595AA7E46}.Release|x64.ActiveCfg = Release|Any CPU
+		{347E5C16-01A2-4CCC-8DF4-FE6595AA7E46}.Release|x86.ActiveCfg = Release|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Debug|x64.Build.0 = Debug|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Debug|x86.Build.0 = Debug|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Release|x64.ActiveCfg = Release|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Release|x64.Build.0 = Release|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Release|x86.ActiveCfg = Release|Any CPU
+		{CB718309-50B4-41F9-8213-244B4FD07833}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

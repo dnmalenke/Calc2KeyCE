@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Calc2KeyCE.Compression;
 using Calc2KeyCE.Core.Usb;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;

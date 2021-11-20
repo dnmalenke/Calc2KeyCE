@@ -1,1 +1,1 @@
-python -m PyInstaller -F "..\main.py" -n Calc2KeyCE.Universal-win-x64 --add-binary "Calc2KeyCE.Compression.dll;." --add-binary "libusb0.dll;." --add-data "..\Calc2KeyCE.runtimeconfig.json;." --exclude-module tkinter --clean
+python -m PyInstaller -F "..\main.py" -n Calc2KeyCE_Universal-win-x64 --add-binary "Calc2KeyCE.Compression.dll;." --add-binary "libusb0.dll;." --add-data "..\Calc2KeyCE.runtimeconfig.json;." --exclude-module tkinter --clean

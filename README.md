@@ -30,9 +30,10 @@ Visit this link and select the installer for your OS under the .NET Runtime sect
 macOS:<br/>
 `brew install libusb`<br/>
 Linux:<br/>
-Calc2KeyCE.Universal needs to be run as sudo to access usb
+Calc2KeyCE_Universal needs to be run as sudo to access usb
 
-Run Calc2KeyCE from a terminal and everything should work! (hopefully)
+On macOS and Windows, the program should be able to run with just a double click.<br/>
+On Linux, run Calc2KeyCE from a terminal and everything should work! (hopefully)
 
 If you run into any issues or have questions, Contact me on Discord: `Darkmasterr#3498`
 

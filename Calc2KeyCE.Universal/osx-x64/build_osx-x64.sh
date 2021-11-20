@@ -1,0 +1,1 @@
+pyinstaller -F "../main.py" -n Calc2KeyCE.Universal-osx-x64 --add-data "Calc2KeyCE.Compression.dll:." --add-data "../Calc2KeyCE.runtimeconfig.json:." --exclude-module tkinter --clean

@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	<Version>1.5.0</Version>
+  </PropertyGroup>
+
+</Project>

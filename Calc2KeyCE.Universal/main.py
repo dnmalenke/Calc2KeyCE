@@ -9,6 +9,9 @@ from pythonnet import set_runtime
 from clr_loader import get_coreclr
 from PIL.Image import FLOYDSTEINBERG, MEDIANCUT
 
+if os.sys.platform == "linux" and os.geteuid() != 0:
+    os.sys.exit("This program must run as root")
+
 # setup path for dll files when it is a pyinstaller executable
 if getattr(os.sys, 'frozen', False):
     basedir = os.sys._MEIPASS
@@ -16,7 +19,7 @@ else:
     basedir = os.path.dirname(os.path.abspath(__file__))
     basedir = str(basedir)
 
-rt = get_coreclr("./Calc2KeyCE.runtimeconfig.json")
+rt = get_coreclr(f"{basedir}/Calc2KeyCE.runtimeconfig.json")
 set_runtime(rt)
 
 import clr

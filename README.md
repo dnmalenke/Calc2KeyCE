@@ -13,11 +13,26 @@ Download and Copy the CE C 'Standard' Libraries https://github.com/CE-Programmin
 Copy usbdrvce.8xv to your calculator<br/>
 Copy CALC2KEY.8xp to your calculator and run the program
 
+### Windows Specific:
+
 If it is your first time, use a program like Zadig https://zadig.akeo.ie/ to install the libusb-win32 driver for USB ID `0451 E009` <br>
 ![zadig](https://user-images.githubusercontent.com/21128448/118577897-d55f6e80-b750-11eb-9c48-049f8778a3a5.png)
 
 Then run Calc2KeyCE and hit connect.
 Feel free to load example presets located in this repo.
+
+### Universal Specific:
+
+Install .NET Runtime
+https://dotnet.microsoft.com/download/dotnet/5.0
+Visit this link and select the installer for your OS under the .NET Runtime section
+
+macOS:
+`brew install libusb`
+Linux:
+Calc2KeyCE.Universal needs to be run as sudo to access usb
+
+Run Calc2KeyCE from a terminal and everything should work! (hopefully)
 
 If you run into any issues or have questions, Contact me on Discord: `Darkmasterr#3498`
 

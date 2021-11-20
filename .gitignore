@@ -343,3 +343,7 @@ healthchecksdb
 /Calc2KeyCE.Universal/env
 /Calc2KeyCE.Universal/win-x64/build
 /Calc2KeyCE.Universal/win-x64/dist
+/Calc2KeyCE.Universal/linux-x64/build/main
+/Calc2KeyCE.Universal/linux-x64/dist
+/Calc2KeyCE.Universal/linux-x64/build/Calc2KeyCE.Universal-linux-x64
+/Calc2KeyCE.Universal/osx-x64/dist

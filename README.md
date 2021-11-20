@@ -27,9 +27,9 @@ Install .NET Runtime
 https://dotnet.microsoft.com/download/dotnet/5.0
 Visit this link and select the installer for your OS under the .NET Runtime section
 
-macOS:
-`brew install libusb`
-Linux:
+macOS:<br/>
+`brew install libusb`<br/>
+Linux:<br/>
 Calc2KeyCE.Universal needs to be run as sudo to access usb
 
 Run Calc2KeyCE from a terminal and everything should work! (hopefully)

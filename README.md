@@ -29,7 +29,7 @@ Visit this link and select the installer for your OS under the .NET Runtime sect
 
 macOS:<br/>
 `brew install libusb`<br/>
-sudo chmod +x Calc2KeyCE_Universal-osx-x64<br/>
+`sudo chmod +x Calc2KeyCE_Universal-osx-x64`<br/>
 Linux:<br/>
 Calc2KeyCE_Universal needs to be run as sudo to access usb
 

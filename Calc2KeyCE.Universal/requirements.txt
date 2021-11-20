@@ -9,6 +9,7 @@ future==0.18.2
 importlib-metadata==4.8.2
 mss==6.1.0
 mypy-extensions==0.4.3
+numpy==1.21.4
 pathspec==0.9.0
 pefile==2021.9.3
 Pillow==8.4.0

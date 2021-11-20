@@ -341,3 +341,5 @@ healthchecksdb
 /Publish.zip
 /PyScreenCaptureLinux
 /Calc2KeyCE.Universal/env
+/Calc2KeyCE.Universal/win-x64/build
+/Calc2KeyCE.Universal/win-x64/dist

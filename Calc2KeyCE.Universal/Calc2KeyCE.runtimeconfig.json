@@ -2,7 +2,7 @@
   "runtimeOptions": {
     "tfm": "net5.0",
     "framework": {
-      "name": "Microsoft.WindowsDesktop.App",
+      "name": "Microsoft.NetCore.App",
       "version": "5.0.0"
     }
   }

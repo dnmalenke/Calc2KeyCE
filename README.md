@@ -15,7 +15,8 @@ Copy CALC2KEY.8xp to your calculator and run the program
 
 ### Windows Specific:
 
-If it is your first time, use a program like Zadig https://zadig.akeo.ie/ to install the libusb-win32 driver for USB ID `0451 E009` <br>
+If it is your first time, use a program like Zadig https://zadig.akeo.ie/ to install the libusb-win32 driver for USB ID `0451 E009` <br/>
+The best way to do this is run Calc2KeyCE on the calculator, then open Zadig and it should auto-detect the calculator. <br/>
 ![zadig](https://user-images.githubusercontent.com/21128448/118577897-d55f6e80-b750-11eb-9c48-049f8778a3a5.png)
 
 Then run Calc2KeyCE and hit connect.

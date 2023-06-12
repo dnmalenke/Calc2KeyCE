@@ -7,8 +7,7 @@ typedef struct global global_t;
 #include <tice.h>
 #include <stdlib.h>
 #include <string.h>
-#include <usbdrvce.h>
-#include "descriptors.c"
+#include "descriptors.h"
 #include <keypadc.h>
 #include <stdio.h>
 
@@ -52,7 +51,7 @@ int main(void)
 
 	init_descriptors();
 
-	if ((error = usb_Init(handleUsbEvent, &global, &descriptors, USB_DEFAULT_INIT_FLAGS)) == USB_SUCCESS)
+	if ((error = usb_Init(handleUsbEvent, &global, get_descriptors(), USB_DEFAULT_INIT_FLAGS)) == USB_SUCCESS)
 	{
 		while ((error = usb_WaitForInterrupt()) == USB_SUCCESS)
 		{

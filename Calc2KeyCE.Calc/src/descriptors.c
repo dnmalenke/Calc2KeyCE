@@ -1,3 +1,4 @@
+#include "descriptors.h"
 #include <usbdrvce.h>
 #include <string.h>
 #include <stdlib.h>
@@ -114,4 +115,8 @@ void init_descriptors() {
 void cleanup_descriptors() {
 	free(string1);
 	free(string2);
+}
+
+usb_standard_descriptors_t* get_descriptors() {
+	return &descriptors;
 }

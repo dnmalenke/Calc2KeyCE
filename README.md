@@ -2,6 +2,9 @@
 
 This is a C# program that reads usb input from a TI-84 Plus CE calculator and allows the user to bind calculator keys to keyboard keys or mouse actions. It can also cast your screen to your calculator's screen.
 
+### Make sure to backup ram before running
+### Press [on] key to exit
+
 If you run into any issues or have questions, Contact me on Discord: `darkmasterr`
 
 Third Party Libraries:

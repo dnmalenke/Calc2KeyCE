@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Calc2KeyCE.Windows": {
-      "commandName": "Project",
-      "nativeDebugging": false
-    }
-  }
-}

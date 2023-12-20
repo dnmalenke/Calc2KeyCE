@@ -1,47 +1,64 @@
-typedef struct global global_t;
-#define usb_callback_data_t global_t
+#include <compression.h>
+#include <keypadc.h>
+#include <string.h>
+#include <sys/basicusb.h>
+#include <sys/lcd.h>
+#include <sys/timers.h>
+#include <ti/getcsc.h>
+#include <usbdrvce.h>
+
+#define BUFFER_SIZE 1024
+#define BUFFER2_SIZE 60032
 #define TIMER_FREQ      32768 // Frequency of timer in Hz
 #define KEY_RATE      (TIMER_FREQ /16)
 
-#include <compression.h>
-#include <tice.h>
-#include <stdlib.h>
-#include <string.h>
-#include <usbdrvce.h>
-#include "descriptors.c"
-#include <keypadc.h>
-#include <stdio.h>
+static usb_device_descriptor_t _dev_descriptor = { 0x12, USB_DEVICE_DESCRIPTOR, 0x200, 0x00, 0x00, 0x00, 0x40, 0x0451, 0xE009, 0x0240, 0x00, 0x00, 0x00, 0x01 };
+static uint8_t _config_descriptors[] = { 0x09, 0x02, 0x20, 0x00, 0x01, 0x01, 0x00, 0x80, 0xFA, 0x09, 0x04, 0x00, 0x00, 0x02, 0xFF, 0x01, 0x01, 0x00, 0x07, 0x05, 0x81, 0x02, 0x40, 0x00, 0x00, 0x07, 0x05, 0x02, 0x02, 0x40, 0x00, 0x00 };
+static const usb_configuration_descriptor_t* _config_descriptors_array[] = { (usb_configuration_descriptor_t*)&_config_descriptors };
 
-struct global
+static usb_standard_descriptors_t _std_descriptor =
 {
-	usb_device_t device;
-	usb_endpoint_t in, out;
-	uint8_t type;
-	usb_device_t host;
+	.device = &_dev_descriptor,
+	.configurations = _config_descriptors_array,
+	.langids = NULL,
+	.numStrings = 0,
+	.strings = NULL,
 };
 
-static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data);
-static usb_error_t handleUsbEvent(usb_event_t event, void* event_data, usb_callback_data_t* callback_data);
-static void sendKeyData();
+static usb_error_t event_handler(usb_event_t event, void* event_data, usb_callback_data_t* callback_data);
+static usb_error_t key_transfer_callback(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data);
+static usb_error_t screen_transfer_callback(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data);
 
-global_t global;
-uint32_t screenSize = 4;
-uint32_t prog = 0;
-bool connected = false;
-void* buffer = 0;
-static const uint64_t zeros = 0;
-bool sendKeys = true;
-static uint8_t* keys;
+static usb_endpoint_t _out_endpoint = NULL;
+static usb_endpoint_t _in_endpoint = NULL;
+
+static bool _connected = false;
+static bool _transfer_scheduled = false;
+static bool _key_transfer_complete = true;
+
+static uint32_t _transfer_progress = 0;
+static uint32_t _screen_offset = 0;
+static int32_t _screen_size = 0;
+static size_t _request_size = 64;
+
+static uint8_t* _palette = lcd_CrsrImage;
+static uint8_t _keys[7];
+static uint8_t _in_buffer[BUFFER_SIZE];
+static uint8_t _compressed_buffer[BUFFER2_SIZE];
+
+static void* _buffer_location;
+
+extern void lcd_Configure();
+extern void lcd_Reset();
+extern void zx0_DecompressMega(void* dst, const void* src);
 
 int main(void)
 {
-	usb_error_t error;
-	keys = malloc(7);
-	memset(&global, 0, sizeof(global_t));
-	memset((void*)lcd_Ram, 0, LCD_SIZE);
-
-	// https://wikiti.brandonw.net/index.php?title=84PCE:Ports:4000
-	lcd_Control = 0b00000100100100111;
+	if (usb_Init(event_handler, NULL, &_std_descriptor, USB_DEFAULT_INIT_FLAGS))
+	{
+		usb_Cleanup();
+		return 1;
+	}
 
 	timer_Disable(1);
 
@@ -50,203 +67,184 @@ int main(void)
 
 	timer_Enable(1, TIMER_32K, TIMER_0INT, TIMER_DOWN);
 
-	init_descriptors();
+	kb_EnableOnLatch();
+	kb_ClearOnLatch();
 
-	if ((error = usb_Init(handleUsbEvent, &global, &descriptors, USB_DEFAULT_INIT_FLAGS)) == USB_SUCCESS)
+	// https://wikiti.brandonw.net/index.php?title=84PCE:Ports:4000
+	memset(lcd_Palette, 0, 512);
+	lcd_Control = (uint24_t)0b00000100000100111; // 8bpp palette mode
+	lcd_Configure();
+
+	memset(lcd_Ram, 0, 320 * 240 * 2);
+
+	for (;;)
 	{
-		while ((error = usb_WaitForInterrupt()) == USB_SUCCESS)
+		if (kb_On)
 		{
-			if (connected)
+			break;
+		}
+
+		if (usb_HandleEvents() != USB_SUCCESS)
+		{
+			break;
+		}
+
+		if (_connected)
+		{
+			if (!_transfer_scheduled)
 			{
-				if (timer_ChkInterrupt(1, TIMER_RELOADED))
-				{
-					kb_Scan();
+				usb_ScheduleTransfer(_out_endpoint, &_in_buffer, _request_size, screen_transfer_callback, &_in_buffer);
 
-					if (memcmp(keys, &zeros, 7)) {
-						sendKeyData();
-						sendKeys = false;
-					}
-					else {
-						sendKeys = true;
-					}
-
-					if (sendKeys) {
-						sendKeyData();
-					}
-
-					timer_AckInterrupt(1, TIMER_RELOADED);
-				}
+				_transfer_scheduled = true;
 			}
-			else if (os_GetCSC())
+
+			if (timer_ChkInterrupt(1, TIMER_RELOADED))
 			{
-				break;
+				kb_Scan();
+
+				if (_keys[0] != kb_Data[1] || _keys[1] != kb_Data[2] || _keys[2] != kb_Data[3] ||
+					_keys[3] != kb_Data[4] || _keys[4] != kb_Data[5] || _keys[5] != kb_Data[6] || _keys[6] != kb_Data[7])
+				{
+					if (_key_transfer_complete)
+					{
+						_keys[0] = kb_Data[1];
+						_keys[1] = kb_Data[2];
+						_keys[2] = kb_Data[3];
+						_keys[3] = kb_Data[4];
+						_keys[4] = kb_Data[5];
+						_keys[5] = kb_Data[6];
+						_keys[6] = kb_Data[7];
+
+						_key_transfer_complete = false; 
+						usb_ScheduleTransfer(_in_endpoint, _keys, 7, key_transfer_callback, NULL);
+					}
+				}
+
+				timer_AckInterrupt(1, TIMER_RELOADED);
 			}
 		}
 	}
 
+	lcd_Reset();
+
+	lcd_UpBase = (uint24_t)lcd_Ram; // reset lcd buffer location
+	lcd_Control = 0b00000100100101101; // back to rgb 565 mode
+
 	usb_Cleanup();
 
-	lcd_Control = 0b00000100100101101;
-
-	cleanup_descriptors();
-	free(keys);
-	free(buffer);
+	// because we're using pixelShadow as the base of heap, clear it out to eliminate screen artifacts on exit
+	memset((void*)(0x0D031F6), 0, 8400);
 
 	return 0;
 }
 
-static void sendKeyData() {
-	keys[0] = kb_Data[1];
-	keys[1] = kb_Data[2];
-	keys[2] = kb_Data[3];
-	keys[3] = kb_Data[4];
-	keys[4] = kb_Data[5];
-	keys[5] = kb_Data[6];
-	keys[6] = kb_Data[7];
-	usb_BulkTransfer(global.in, keys, 7, 0, NULL);
-}
-
-static usb_error_t handleBulkOut(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data)
+static usb_error_t key_transfer_callback(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data)
 {
-	if (prog != UINT32_MAX)
-	{
-		if (prog >= screenSize)
-		{
-			prog = 0;
-		}
-
-		if (transferred == 4)
-		{
-			connected = true;
-			memcpy(&screenSize, data, sizeof(int));
-		}
-		else if (transferred == 3)
-		{
-			connected = !connected;
-			if (!connected)
-			{
-				return USB_ERROR_NO_DEVICE;
-			}
-		}
-		else
-		{
-			if (screenSize >= 51200)
-			{
-				if (prog == 0)
-				{
-					memcpy((void*)lcd_Palette, data, 512);
-
-					memcpy((void*)lcd_Ram, ((char*)data + 512), transferred - 512);
-				}
-				else
-				{
-					memcpy((void*)lcd_Ram + prog - 512, data, transferred);
-				}
-
-				if (prog + transferred >= screenSize)
-				{
-					screenSize = 4;
-				}
-			}
-			else
-			{
-				memcpy((void*)lcd_Palette, data, 512);
-				zx7_Decompress((void*)lcd_Ram, ((char*)data + 512));
-				screenSize = 4;
-			}
-		}
-	}
-
-	if (status == USB_TRANSFER_COMPLETED)
-	{
-		if (prog != UINT32_MAX)
-		{
-			if (transferred != 4)
-			{
-				prog += transferred;
-			}
-
-			if (screenSize >= 51200)
-			{
-				if (screenSize - prog >= 51200)
-				{
-					return usb_ScheduleBulkTransfer(endpoint, data, 51200, handleBulkOut, data);
-				}
-				else
-				{
-					return usb_ScheduleBulkTransfer(endpoint, data, screenSize - prog, handleBulkOut, data);
-				}
-			}
-
-			return usb_ScheduleBulkTransfer(endpoint, data, screenSize, handleBulkOut, data);
-		}
-
-		return usb_ScheduleBulkTransfer(endpoint, data, 1024, handleBulkOut, data);
-	}
+	(void)endpoint;
+	(void)status;
+	(void)transferred;
+	(void)data;
+	
+	_key_transfer_complete = true;
 
 	return USB_SUCCESS;
 }
 
-static usb_error_t handleUsbEvent(usb_event_t event, void* event_data, usb_callback_data_t* callback_data)
+static usb_error_t screen_transfer_callback(usb_endpoint_t endpoint, usb_transfer_status_t status, size_t transferred, usb_transfer_data_t* data)
 {
-	usb_error_t error = USB_SUCCESS;
-	switch ((unsigned)event)
+	(void)endpoint;
+	(void)status;
+
+	if (transferred != 64 || _transfer_progress != 0)
 	{
-	case USB_HOST_CONFIGURE_EVENT:
-	{
-		callback_data->host = usb_FindDevice(NULL, NULL, USB_SKIP_HUBS);
-		if (!callback_data->host)
+		if (_transfer_progress)
 		{
-			error = USB_ERROR_NO_DEVICE;
-			break;
+			memcpy(_buffer_location + _transfer_progress - 512, data, transferred);
+		}
+		else
+		{
+			memcpy((void*)_palette, data, 512);
+			memcpy(_buffer_location, ((char*)data + 512), transferred - 512);
 		}
 
-		callback_data->out = usb_GetDeviceEndpoint(callback_data->host, 0x02);
-		callback_data->in = usb_GetDeviceEndpoint(callback_data->host, 0x81);
+		_transfer_progress += transferred;
 
-		global.in = callback_data->in;
-
-		if (!callback_data->in || !callback_data->out)
+		if (_transfer_progress >= (uint32_t)_screen_size)
 		{
-			error = USB_ERROR_SYSTEM;
-			break;
-		}
-		usb_SetEndpointFlags(callback_data->in, USB_AUTO_TERMINATE);
-		if (error != USB_SUCCESS)
-		{
-			break;
-		}
+			_transfer_progress = 0;
+			_request_size = 64;
 
-		if (buffer == 0) {
-			if (!(buffer = malloc(1024)))
+			if (_screen_size <= BUFFER2_SIZE + 512)
 			{
-				error = USB_ERROR_NO_MEMORY;
-				break;
+				zx0_DecompressMega((void*)lcd_Ram + _screen_offset, _compressed_buffer);
+			}
+
+			memcpy((void*)lcd_Palette, _palette, 512);
+
+			lcd_UpBase = (uint24_t)(lcd_Ram + _screen_offset);
+			_screen_offset = _screen_offset == 0 ? LCD_WIDTH * LCD_HEIGHT : 0;
+		}
+		else
+		{
+			if (_screen_size - _transfer_progress < BUFFER_SIZE)
+			{
+				_request_size = _screen_size - _transfer_progress;
 			}
 		}
-		prog = UINT32_MAX;
-		handleBulkOut(callback_data->out, USB_TRANSFER_COMPLETED, 0, buffer);
-		prog = 0;
-		break;
 	}
-	case USB_DEVICE_DISCONNECTED_EVENT:
-		if (callback_data->device == event_data)
+	else
+	{
+		memcpy(&_screen_size, data, sizeof(int32_t));
+
+		if (_screen_size == -1)
 		{
-			callback_data->device = NULL;
-			callback_data->in = callback_data->out = NULL;
-			connected = false;
+			memset(lcd_Ram, 0, 320 * 240 * 2);
+
+			_transfer_progress = 0;
+			_request_size = 64;
+			_screen_size = 0;
+			_transfer_scheduled = false;
+
+			return USB_SUCCESS;
 		}
-		__attribute__((fallthrough));
-	case USB_DEVICE_CONNECTED_EVENT:
-	case USB_DEVICE_DISABLED_EVENT:
-	case USB_DEVICE_ENABLED_EVENT:
-		if (event == USB_DEVICE_CONNECTED_EVENT && !(usb_GetRole() & USB_ROLE_DEVICE))
-			error = usb_ResetDevice((usb_device_t)event_data);
-		if (event == USB_DEVICE_ENABLED_EVENT)
-			callback_data->device = (usb_device_t)event_data;
-		break;
-	default:
-		break;
+
+		_request_size = _screen_size > BUFFER_SIZE ? BUFFER_SIZE : _screen_size;
+
+		if (_screen_size <= BUFFER2_SIZE)
+		{
+			memset(_compressed_buffer + (_screen_size - 512), 0, BUFFER2_SIZE - (_screen_size - 512)); // so the decompression doesn't see leftover data from last frame
+			_buffer_location = (void*)_compressed_buffer;
+		}
+		else
+		{
+			_buffer_location = lcd_Ram + _screen_offset;
+		}
 	}
-	return error;
+
+	_transfer_scheduled = false;
+
+	return USB_SUCCESS;
+}
+
+static usb_error_t event_handler(usb_event_t event, void* event_data, usb_callback_data_t* callback_data)
+{
+	(void)event_data;
+	(void)callback_data;
+
+	if (event == USB_HOST_CONFIGURE_EVENT)
+	{
+		usb_device_t host_device = usb_FindDevice(NULL, NULL, USB_SKIP_HUBS);
+
+		if (!host_device)
+		{
+			return USB_ERROR_NO_DEVICE;
+		}
+
+		_out_endpoint = usb_GetDeviceEndpoint(host_device, 0x02);
+		_in_endpoint = usb_GetDeviceEndpoint(host_device, 0x81);
+
+		_connected = true;
+	}
+
+	return USB_SUCCESS;
 }

@@ -18,19 +18,11 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\main.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="makefile" />
-    <None Include="src\dzx0_mega.asm" />
-    <None Include="src\lcd_helper.asm" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>16.0</VCProjectVersion>
+    <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{e7615dd0-2c33-4f63-b1fc-c29bf3c850a0}</ProjectGuid>
-    <RootNamespace>Calc2KeyCECalc</RootNamespace>
+    <ProjectGuid>{77b14829-788d-403b-a9b9-ce875db1fd72}</ProjectGuid>
+    <RootNamespace>Calc2KeyCEFast</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -48,13 +40,13 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Makefile</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Makefile</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -78,25 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetExt>.8xp</TargetExt>
-    <ExtensionsToDeleteOnClean>*.8xp;$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
-    <NMakeBuildCommandLine>C:\CEDev\CEDev.bat .</NMakeBuildCommandLine>
-    <OutDir>.\bin</OutDir>
-    <IntDir>.\obj</IntDir>
-    <ExternalIncludePath>C:\CEdev\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <NMakeReBuildCommandLine>del /Q /S bin obj &amp; C:\CEDev\CEdev.bat .</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>del /Q /S bin obj</NMakeCleanCommandLine>
-    <NMakeIncludeSearchPath>C:\CEdev\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <NMakeBuildCommandLine>C:\CEDev\CEDev.bat .</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>del /Q /S bin obj &amp; C:\CEDev\CEdev.bat .</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>del /Q /S bin obj</NMakeCleanCommandLine>
-    <NMakeIncludeSearchPath>C:\CEdev\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <OutDir>.\bin</OutDir>
-    <IntDir>.\obj</IntDir>
-    <ExternalIncludePath>C:\CEdev\include;$(ExternalIncludePath)</ExternalIncludePath>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgXUseBuiltInApplocalDeps>false</VcpkgXUseBuiltInApplocalDeps>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,14 +108,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(Platform)\$(Configuration)\;$(ProjectDir)libwdi\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <StackReserveSize>
+      </StackReserveSize>
+      <AdditionalDependencies>newdev.lib;setupapi.lib;$(ProjectDir)libwdi\libwdi.lib;$(ProjectDir)libwdi\getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <BuildLog>
-      <Path />
-    </BuildLog>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -149,17 +126,67 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(ProjectDir)libwdi\;$(Platform)\$(Configuration)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>newdev.lib;setupapi.lib;$(ProjectDir)libwdi\libwdi.lib;$(ProjectDir)libwdi\getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <BuildLog>
-      <Path />
-    </BuildLog>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="compression.c" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="receiver.cpp" />
+    <ClCompile Include="sender.cpp" />
+    <ClCompile Include="WinDesktopDup.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="keypad.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="receiver.h" />
+    <ClInclude Include="sender.h" />
+    <ClInclude Include="WinDesktopDup.h" />
+    <ClInclude Include="compression.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg.json">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="PixelShader.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0_level_9_3</ShaderModel>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\%(Filename).h</HeaderFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\%(Filename).h</HeaderFileOutput>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0_level_9_3</ShaderModel>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\%(Filename).h</HeaderFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\%(Filename).h</HeaderFileOutput>
+    </FxCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

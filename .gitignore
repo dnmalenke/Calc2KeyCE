@@ -346,3 +346,4 @@ healthchecksdb
 /Calc2KeyCE.Universal/linux-x64/dist
 /Calc2KeyCE.Universal/osx-x64/dist
 /Calc2KeyCE.Universal/win-x64/build
+/Calc2KeyCE.Fast/vcpkg_installed/x64-windows

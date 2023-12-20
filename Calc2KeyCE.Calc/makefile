@@ -2,19 +2,14 @@
 # Makefile Options
 # ----------------------------
 
-NAME        ?= CALC2KEY
-COMPRESSED  ?= YES
-ICON        ?= iconc.png
-DESCRIPTION ?= "Calc2KEYCE 1.4.0"
-ARCHIVED ?= NO
+NAME = A
+ARCHIVED = NO
+DESCRIPTION = "Calc2KeyCE by David Malenke"
+COMPRESSED = NO
+BSSHEAP_LOW = D031F6
 
-CFLAGS ?= -Wall -Wextra -Oz
-CXXFLAGS ?= -Wall -Wextra -Oz
-
+CFLAGS = -Wall -Wextra -O3
+CXXFLAGS = -Wall -Wextra -O3
 # ----------------------------
 
-ifndef CEDEV
-$(error CEDEV environment path variable is not set)
-endif
-
-include $(CEDEV)/meta/makefile.mk
+include $(shell cedev-config --makefile)

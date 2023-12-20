@@ -2,7 +2,7 @@
 # Makefile Options
 # ----------------------------
 
-NAME = Calc2KeyCE
+NAME = Calc2Key
 ARCHIVED = NO
 DESCRIPTION = "Calc2KeyCE by David Malenke"
 COMPRESSED = NO
